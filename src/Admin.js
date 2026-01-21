@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-import config from "./config";
-
 export default function Admin() {
   const [uploads, setUploads] = useState([]);
   const [workspaces, setWorkspaces] = useState([]);
@@ -13,7 +11,7 @@ export default function Admin() {
   const [role, setRole] = useState(""); // "main" or "team"
   const [viewMode, setViewMode] = useState("uploads"); // "uploads" or "workspaces"
 
-  const API_BASE = config.API_BASE_URL;
+  const API_BASE = "https://filehub-gyll.onrender.com";
 
   useEffect(() => {
     if (authenticated) {
