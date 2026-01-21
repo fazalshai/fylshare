@@ -9,7 +9,8 @@ export default function Search() {
   const [result, setResult] = useState(null);
   const [toast, setToast] = useState(null);
 
-  // Ads state removed
+  const [showLeftBanner, setShowLeftBanner] = useState(true);
+  const [showRightBanner, setShowRightBanner] = useState(true);
 
   const triggerToast = (message, type = "info") => {
     setToast({ message, type });
@@ -52,7 +53,32 @@ export default function Search() {
   };
 
   // Data matched to Home.js for consistency
-  // Ads removed per user request
+  const sideBanners = {
+    left: {
+      href: "https://example.com/left",
+      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
+      alt: "Left Banner",
+    },
+    right: {
+      href: "https://example.com/right",
+      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
+      alt: "Right Banner",
+    },
+  };
+
+  const CloseableBanner = ({ children, onClose }) => (
+    <div className="relative rounded-sm overflow-hidden select-none bg-black/40 w-full mb-4 md:mb-0 border border-white/10">
+      <button
+        onClick={onClose}
+        aria-label="Close banner"
+        title="Close"
+        className="absolute top-1 right-2 text-white font-bold text-xl hover:text-gray-300 focus:outline-none select-none z-10"
+      >
+        ×
+      </button>
+      {children}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-transparent text-white font-[Orbitron] px-4 pt-24 relative">
@@ -75,7 +101,21 @@ export default function Search() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-6 items-start mt-8">
 
         {/* Left Banner */}
-        {/* Advertisements Removed */}
+        {showLeftBanner && (
+          <div className="hidden md:block">
+            <CloseableBanner onClose={() => setShowLeftBanner(false)}>
+              <a href={sideBanners.left.href} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={sideBanners.left.img}
+                  alt={sideBanners.left.alt}
+                  className="mx-auto rounded-md max-h-[600px] w-full object-cover"
+                  loading="lazy"
+                />
+              </a>
+            </CloseableBanner>
+          </div>
+        )}
+        {!showLeftBanner && <div className="hidden md:block" />}
 
         {/* Center Content */}
         <div className="md:col-span-3 text-center">
@@ -176,7 +216,21 @@ export default function Search() {
         </div>
 
         {/* Right Banner */}
-        {/* Advertisements Removed */}
+        {showRightBanner && (
+          <div className="hidden md:block">
+            <CloseableBanner onClose={() => setShowRightBanner(false)}>
+              <a href={sideBanners.right.href} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={sideBanners.right.img}
+                  alt={sideBanners.right.alt}
+                  className="mx-auto rounded-md max-h-[600px] w-full object-cover"
+                  loading="lazy"
+                />
+              </a>
+            </CloseableBanner>
+          </div>
+        )}
+        {!showRightBanner && <div className="hidden md:block" />}
       </div>
 
       {/* SEO Content: Retrieval Guide */}
