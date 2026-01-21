@@ -1,26 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/logo.jpg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="description" content="The Easy Way to Share Files" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo.jpg" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>Fylshare</title>
 
-    <!-- ✅ CSP updated to allow Monetag -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%PUBLIC_URL%/logo.jpg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="The Easy Way to Share Files" />
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo.jpg" />
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <title>Fylshare</title>
+
+  <!-- ✅ Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2166710488015718"
+    crossorigin="anonymous"></script>
+
+  <!-- ✅ CSP updated to allow Google Ads & Monetag -->
+  <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
         base-uri 'self';
         form-action 'self';
 
-        script-src 'self'
+        script-src 'self' 'unsafe-inline'
           https://www.googletagmanager.com
           https://www.google-analytics.com
+          https://pagead2.googlesyndication.com
+          https://tpc.googlesyndication.com
           https://*.monetag.com
           https://*.adtng.com;
 
@@ -32,6 +37,7 @@
           https://firebaseinstallations.googleapis.com
           https://www.google-analytics.com
           https://www.googletagmanager.com
+          https://pagead2.googlesyndication.com
           https://*.monetag.com
           https://*.adtng.com;
 
@@ -39,6 +45,7 @@
           https://firebasestorage.googleapis.com
           https://tpc.googlesyndication.com
           https://www.google-analytics.com
+          https://pagead2.googlesyndication.com
           https://*.monetag.com
           https://*.adtng.com;
 
@@ -48,23 +55,21 @@
 
         frame-src 'self'
           https://www.googletagmanager.com
+          https://googleads.g.doubleclick.net
+          https://tpc.googlesyndication.com
           https://*.monetag.com
           https://*.adtng.com;
 
         object-src 'none';
-      "
-    />
-  </head>
+      " />
+</head>
 
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
 
-    <!-- ✅ Monetag Popunder (Epic tag · zone 9526371) -->
-    <script
-      async
-      data-cfasync="false"
-      src="https://p.monetag.com/tag.min.js?z=9526371"
-    ></script>
-  </body>
+  <!-- ✅ Monetag Popunder (Epic tag · zone 9526371) -->
+  <script async data-cfasync="false" src="https://p.monetag.com/tag.min.js?z=9526371"></script>
+</body>
+
 </html>
