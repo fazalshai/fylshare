@@ -9,10 +9,7 @@ export default function Search() {
   const [result, setResult] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const [showTopBanner, setShowTopBanner] = useState(true);
-  const [showLeftBanner, setShowLeftBanner] = useState(true);
-  const [showRightBanner, setShowRightBanner] = useState(true);
-  const [showBottomBanner, setShowBottomBanner] = useState(true);
+  // Ads state removed
 
   const triggerToast = (message, type = "info") => {
     setToast({ message, type });

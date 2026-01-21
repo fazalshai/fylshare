@@ -11,10 +11,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  const [showTopBanner, setShowTopBanner] = useState(true);
-  const [showLeftBanner, setShowLeftBanner] = useState(true);
-  const [showRightBanner, setShowRightBanner] = useState(true);
-  const [showBottomBanner, setShowBottomBanner] = useState(true);
+  // Ads state removed
 
   // 1GB Limit
   const MAX_TOTAL_SIZE = 1024 * 1024 * 1024;
