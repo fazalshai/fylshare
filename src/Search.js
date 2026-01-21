@@ -69,42 +69,7 @@ export default function Search() {
         </AnimatePresence>
       </div>
 
-      {/* Top Banner */}
-      {showTopBanner && (
-        <CloseableBanner onClose={() => setShowTopBanner(false)}>
-          <div className="flex items-center justify-between text-white px-4 py-2 font-semibold text-center text-sm uppercase max-w-7xl mx-auto glass rounded-xl shadow-md">
-            ADVERTISEMENT
-          </div>
-          <div
-            className="flex flex-wrap justify-center overflow-hidden md:overflow-x-auto scrollbar-hide no-scrollbar max-w-7xl mx-auto px-2"
-            style={{ scrollSnapType: "x mandatory" }}
-          >
-            {bannerAds.map(({ href, img, alt, logoOnly }, idx) => (
-              <a
-                key={idx}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-shrink-0 flex flex-col items-center justify-center m-1 rounded-md shadow-lg glass"
-                style={{
-                  minWidth: logoOnly ? 140 : 180,
-                  maxWidth: logoOnly ? 160 : 200,
-                  flexGrow: 1,
-                  flexBasis: logoOnly ? "140px" : "180px",
-                }}
-              >
-                <img
-                  src={img}
-                  alt={alt}
-                  className="object-contain rounded-t-md"
-                  style={{ width: "100%", height: logoOnly ? 80 : 120 }}
-                  loading="lazy"
-                />
-              </a>
-            ))}
-          </div>
-        </CloseableBanner>
-      )}
+      {/* Top Banner Removed */}
 
       {/* Main Grid Layout */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-6 items-start mt-8">

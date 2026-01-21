@@ -191,19 +191,7 @@ export default function Home() {
         </div>
 
         {/* Right Banner */}
-        {showRightBanner && (
-          <CloseableBanner onClose={() => setShowRightBanner(false)}>
-            <a href={sideBanners.right.href} target="_blank" rel="noopener noreferrer">
-              <img
-                src={sideBanners.right.img}
-                alt={sideBanners.right.alt}
-                className="mx-auto rounded-md max-h-[250px]"
-                style={{ width: "auto", backgroundColor: "transparent" }}
-                loading="lazy"
-              />
-            </a>
-          </CloseableBanner>
-        )}
+        {/* Right Banner Removed */}
       </div>
 
       {/* SEO Content Section: Features & FAQ */}
@@ -275,20 +263,7 @@ export default function Home() {
       </div>
 
       {/* Bottom Banner */}
-      {showBottomBanner && (
-        <CloseableBanner onClose={() => setShowBottomBanner(false)}>
-          <a href={sideBanners.bottom.href} target="_blank" rel="noopener noreferrer">
-            <img
-              id="lowerfeatureshowcase300"
-              src={sideBanners.bottom.img}
-              alt={sideBanners.bottom.alt}
-              className="w-full rounded-xl max-h-[150px] object-contain"
-              loading="lazy"
-              style={{ backgroundColor: "transparent" }}
-            />
-          </a>
-        </CloseableBanner>
-      )}
+      {/* Bottom Banner Removed */}
     </div>
   );
 }
