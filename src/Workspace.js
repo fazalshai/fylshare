@@ -3,9 +3,6 @@ import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import Toast from "./Toast";
 import { Box } from "lucide-react";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { storage } from "./firebase";
-
 import config from "./config";
 
 export default function Workspace() {
@@ -42,8 +39,10 @@ export default function Workspace() {
 
             if (res.ok) {
                 setIsLoggedIn(true);
+                // For login, specific logic can be here, but using generic toast
                 triggerToast(isLogin ? "Logged in successfully" : "Box created successfully", "success");
-                refreshFiles();
+                if (data.files) setFiles(data.files);
+                if (isLogin) refreshFiles();
             } else {
                 triggerToast(data.message || "Authentication failed", "error");
             }
@@ -74,37 +73,21 @@ export default function Workspace() {
     const handleUpload = async () => {
         if (uploadFiles.length === 0) return;
         setLoading(true);
-
-        const uploadedMeta = [];
+        setProgress(50); // Fake progress for fetch
 
         try {
-            for (const file of uploadFiles) {
-                await new Promise((resolve, reject) => {
-                    const storageRef = ref(storage, `workspaces/${boxName}/${file.name}`);
-                    const uploadTask = uploadBytesResumable(storageRef, file);
-
-                    uploadTask.on("state_changed",
-                        (snapshot) => {
-                            const p = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                            setProgress(Math.round(p));
-                        },
-                        (error) => reject(error),
-                        async () => {
-                            const url = await getDownloadURL(uploadTask.snapshot.ref);
-                            uploadedMeta.push({ name: file.name, url, size: file.size });
-                            resolve();
-                        }
-                    );
-                });
-            }
+            const formData = new FormData();
+            formData.append("boxName", boxName);
+            formData.append("pin", pin);
+            uploadFiles.forEach((file) => formData.append("files", file));
 
             const res = await fetch(`${config.API_BASE_URL}/api/workspaces/upload`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ boxName, pin, files: uploadedMeta }),
+                body: formData, // Browser sets Content-Type: multipart/form-data
             });
 
             if (res.ok) {
+                setProgress(100);
                 triggerToast("Files uploaded successfully", "success");
                 setUploadFiles([]);
                 refreshFiles();

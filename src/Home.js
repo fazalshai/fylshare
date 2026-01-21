@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import Toast from "./Toast";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { storage, analytics } from "./firebase";
-import { logEvent } from "firebase/analytics";
 import config from "./config";
 
 export default function Home() {
@@ -54,58 +51,26 @@ export default function Home() {
       return;
     }
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const uploadedFiles = [];
+
     setLoading(true);
-    setProgress(0);
+    setProgress(50); // Fake progress since fetch doesn't support progress events easily
 
     try {
-      for (const file of files) {
-        await new Promise((resolve, reject) => {
-          const storageRef = ref(storage, `uploads/${code}/${file.name}`);
-          const uploadTask = uploadBytesResumable(storageRef, file);
-
-          uploadTask.on(
-            "state_changed",
-            (snapshot) => {
-              const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              const overallPercent = ((uploadedFiles.length + percent / 100) / files.length) * 100;
-              setProgress(Math.floor(overallPercent));
-            },
-            (error) => reject(error),
-            async () => {
-              const url = await getDownloadURL(uploadTask.snapshot.ref);
-              uploadedFiles.push({ name: file.name, url });
-              resolve();
-            }
-          );
-        });
-      }
-
-      if (uploadedFiles.length === 0) {
-        triggerToast("❌ No files uploaded", "error");
-        setLoading(false);
-        return;
-      }
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("code", code);
+      formData.append("size", totalSize);
+      files.forEach((file) => formData.append("files", file));
 
       const res = await fetch(`${config.API_BASE_URL}/api/uploads`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          files: uploadedFiles,
-          code,
-          size: totalSize,
-        }),
+        body: formData, // No Content-Type header; browser sets it with boundary
       });
 
       const result = await res.json();
-      if (res.ok) {
-        logEvent(analytics, "file_upload", {
-          file_count: files.length,
-          total_size_mb: (totalSize / 1024 / 1024).toFixed(2),
-          uploader_name: name,
-        });
 
+      if (res.ok) {
+        setProgress(100);
         triggerToast(`✅ Upload successful! Your code: ${code}`, "success", 15000);
         setFiles([]);
         setName("");

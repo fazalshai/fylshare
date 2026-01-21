@@ -18,17 +18,12 @@ import PrivacyPolicy from "./Privacy";
 import TermsOfService from "./Terms";
 import Footer from "./Footer";
 
-import { analytics } from "./firebase";
-import { logEvent } from "firebase/analytics";
 
 function AppContent() {
   const location = useLocation();
 
   useEffect(() => {
-    // Log each page view to Firebase Analytics
-    logEvent(analytics, "page_view", {
-      page_path: location.pathname,
-    });
+    // Analytics removed
   }, [location]);
 
   return (
