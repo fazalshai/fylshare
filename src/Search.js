@@ -55,46 +55,7 @@ export default function Search() {
   };
 
   // Data matched to Home.js for consistency
-  const bannerAds = [
-    {
-      href: "https://www.w3schools.com/html/default.asp",
-      img: "https://tpc.googlesyndication.com/simgad/9379794023110126497",
-      alt: "W3Schools Banner",
-      logoOnly: true,
-    },
-  ];
-
-  const sideBanners = {
-    left: {
-      href: "https://example.com/left",
-      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
-      alt: "Left Banner",
-    },
-    right: {
-      href: "https://example.com/right",
-      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
-      alt: "Right Banner",
-    },
-    bottom: {
-      href: "https://example.com/bottom",
-      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
-      alt: "Bottom Banner",
-    },
-  };
-
-  const CloseableBanner = ({ children, onClose }) => (
-    <div className="relative rounded-sm overflow-hidden select-none bg-black/40 max-w-7xl mx-auto my-4 p-2 border border-white/10">
-      <button
-        onClick={onClose}
-        aria-label="Close banner"
-        title="Close"
-        className="absolute top-1 right-2 text-white font-bold text-xl hover:text-gray-300 focus:outline-none select-none z-10"
-      >
-        ×
-      </button>
-      {children}
-    </div>
-  );
+  // Ads removed per user request
 
   return (
     <div className="min-h-screen bg-transparent text-white font-[Orbitron] px-4 pt-24 relative">
@@ -152,19 +113,7 @@ export default function Search() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-6 items-start mt-8">
 
         {/* Left Banner */}
-        {showLeftBanner && (
-          <CloseableBanner onClose={() => setShowLeftBanner(false)}>
-            <a href={sideBanners.left.href} target="_blank" rel="noopener noreferrer">
-              <img
-                src={sideBanners.left.img}
-                alt={sideBanners.left.alt}
-                className="mx-auto rounded-md max-h-[250px]"
-                style={{ width: "auto", backgroundColor: "transparent" }}
-                loading="lazy"
-              />
-            </a>
-          </CloseableBanner>
-        )}
+        {/* Advertisements Removed */}
 
         {/* Center Content */}
         <div className="md:col-span-3 text-center">
@@ -265,19 +214,7 @@ export default function Search() {
         </div>
 
         {/* Right Banner */}
-        {showRightBanner && (
-          <CloseableBanner onClose={() => setShowRightBanner(false)}>
-            <a href={sideBanners.right.href} target="_blank" rel="noopener noreferrer">
-              <img
-                src={sideBanners.right.img}
-                alt={sideBanners.right.alt}
-                className="mx-auto rounded-md max-h-[250px]"
-                style={{ width: "auto", backgroundColor: "transparent" }}
-                loading="lazy"
-              />
-            </a>
-          </CloseableBanner>
-        )}
+        {/* Advertisements Removed */}
       </div>
 
       {/* SEO Content: Retrieval Guide */}
@@ -325,20 +262,7 @@ export default function Search() {
       </div>
 
       {/* Bottom Banner */}
-      {showBottomBanner && (
-        <CloseableBanner onClose={() => setShowBottomBanner(false)}>
-          <a href={sideBanners.bottom.href} target="_blank" rel="noopener noreferrer">
-            <img
-              id="lowerfeatureshowcase300"
-              src={sideBanners.bottom.img}
-              alt={sideBanners.bottom.alt}
-              className="w-full rounded-xl max-h-[150px] object-contain"
-              loading="lazy"
-              style={{ backgroundColor: "transparent" }}
-            />
-          </a>
-        </CloseableBanner>
-      )}
+      {/* Advertisements Removed */}
     </div>
   );
 }

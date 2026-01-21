@@ -87,46 +87,7 @@ export default function Home() {
     }
   };
 
-  const bannerAds = [
-    {
-      href: "https://www.w3schools.com/html/default.asp",
-      img: "https://tpc.googlesyndication.com/simgad/9379794023110126497",
-      alt: "W3Schools Banner",
-      logoOnly: true,
-    },
-  ];
-
-  const sideBanners = {
-    left: {
-      href: "https://example.com/left",
-      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
-      alt: "Left Banner",
-    },
-    right: {
-      href: "https://example.com/right",
-      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
-      alt: "Right Banner",
-    },
-    bottom: {
-      href: "https://example.com/bottom",
-      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
-      alt: "Bottom Banner",
-    },
-  };
-
-  const CloseableBanner = ({ children, onClose }) => (
-    <div className="relative rounded-sm overflow-hidden select-none bg-black/40 max-w-7xl mx-auto my-4 p-2 border border-white/10">
-      <button
-        onClick={onClose}
-        aria-label="Close banner"
-        title="Close"
-        className="absolute top-1 right-2 text-white font-bold text-xl hover:text-gray-300 focus:outline-none select-none z-10"
-      >
-        ×
-      </button>
-      {children}
-    </div>
-  );
+  // Ads removed per user request
 
   return (
     <div className="min-h-screen bg-transparent text-white font-[Orbitron] px-4 pt-24 relative">
@@ -168,59 +129,12 @@ export default function Home() {
         </AnimatePresence>
       </div>
 
-      {/* Top Banner */}
-      {showTopBanner && (
-        <CloseableBanner onClose={() => setShowTopBanner(false)}>
-          <div className="flex items-center justify-between text-white px-4 py-2 font-semibold text-center text-sm uppercase max-w-7xl mx-auto glass rounded-xl shadow-md">
-            ADVERTISEMENT
-          </div>
-          <div
-            className="flex flex-wrap justify-center overflow-hidden md:overflow-x-auto scrollbar-hide no-scrollbar max-w-7xl mx-auto px-2"
-            style={{ scrollSnapType: "x mandatory" }}
-          >
-            {bannerAds.map(({ href, img, alt, logoOnly }, idx) => (
-              <a
-                key={idx}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-shrink-0 flex flex-col items-center justify-center m-1 rounded-md shadow-lg glass"
-                style={{
-                  minWidth: logoOnly ? 140 : 180,
-                  maxWidth: logoOnly ? 160 : 200,
-                  flexGrow: 1,
-                  flexBasis: logoOnly ? "140px" : "180px",
-                }}
-              >
-                <img
-                  src={img}
-                  alt={alt}
-                  className="object-contain rounded-t-md"
-                  style={{ width: "100%", height: logoOnly ? 80 : 120 }}
-                  loading="lazy"
-                />
-              </a>
-            ))}
-          </div>
-        </CloseableBanner>
-      )}
+      {/* Top Banner Removed */}
 
       {/* Main upload grid */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-6 items-start">
         {/* Left Banner */}
-        {showLeftBanner && (
-          <CloseableBanner onClose={() => setShowLeftBanner(false)}>
-            <a href={sideBanners.left.href} target="_blank" rel="noopener noreferrer">
-              <img
-                src={sideBanners.left.img}
-                alt={sideBanners.left.alt}
-                className="mx-auto rounded-md max-h-[250px]"
-                style={{ width: "auto", backgroundColor: "transparent" }}
-                loading="lazy"
-              />
-            </a>
-          </CloseableBanner>
-        )}
+        {/* Advertisements Removed */}
 
         {/* Upload center */}
         <div className="md:col-span-3">
@@ -296,10 +210,10 @@ export default function Home() {
       </div>
 
       {/* SEO Content Section: Features & FAQ */}
-      <div className="max-w-7xl mx-auto mt-20 mb-12 space-y-16">
+      < div className="max-w-7xl mx-auto mt-20 mb-12 space-y-16" >
 
         {/* Features Grid */}
-        <div className="text-center">
+        < div className="text-center" >
           <h2 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400">Why Use FylShare?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
