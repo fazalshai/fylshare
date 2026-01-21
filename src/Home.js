@@ -129,12 +129,11 @@ export default function Home() {
       {/* Top Banner Removed */}
 
       {/* Main upload grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-6 items-start">
-        {/* Left Banner */}
-        {/* Advertisements Removed */}
+      {/* Main upload centered */}
+      <div className="max-w-4xl mx-auto items-start">
 
         {/* Upload center */}
-        <div className="md:col-span-3">
+        <div className="w-full">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
