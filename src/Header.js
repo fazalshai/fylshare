@@ -7,9 +7,8 @@ export default function Header() {
   const navItems = [
     { name: "Upload", path: "/" },
     { name: "Search", path: "/search" },
-    { name: "Data", path: "/data" },
     { name: "About Us", path: "/about" },
-    { name: "Analytics", path: "/analytics" }, // ✅ New public data tab
+    { name: "My Box", path: "/workspace" }, // ✅ Workspace feature
   ];
 
   return (
@@ -26,9 +25,8 @@ export default function Header() {
             <Link
               key={item.name}
               to={item.path}
-              className={`hover:text-fuchsia-400 transition ${
-                location.pathname === item.path ? "text-fuchsia-500" : ""
-              }`}
+              className={`hover:text-fuchsia-400 transition ${location.pathname === item.path ? "text-fuchsia-500" : ""
+                }`}
             >
               {item.name}
             </Link>

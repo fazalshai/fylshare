@@ -3,8 +3,9 @@ import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import Toast from "./Toast";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { storage, analytics } from "./firebase"; // added analytics import
-import { logEvent } from "firebase/analytics"; // import logEvent
+import { storage, analytics } from "./firebase";
+import { logEvent } from "firebase/analytics";
+import config from "./config";
 
 export default function Home() {
   const [name, setName] = useState("");
@@ -18,13 +19,12 @@ export default function Home() {
   const [showRightBanner, setShowRightBanner] = useState(true);
   const [showBottomBanner, setShowBottomBanner] = useState(true);
 
-  // Changed from 100MB to 1GB (1024 MB)
+  // 1GB Limit
   const MAX_TOTAL_SIZE = 1024 * 1024 * 1024;
 
   const onDrop = (acceptedFiles) => {
     const totalSize = acceptedFiles.reduce((sum, file) => sum + file.size, 0);
     if (totalSize > MAX_TOTAL_SIZE) {
-      // Updated error message
       triggerToast("❌ Total upload limit is 1GB", "error");
       return;
     }
@@ -38,13 +38,10 @@ export default function Home() {
     accept: { "*/*": [] },
   });
 
-  // UPDATED: toast with configurable duration (default 15s)
-  // UPDATED: keep duration in toast state so we can pass it down
-const triggerToast = (message, type = "info", duration = 15000) => {
-  setToast({ message, type, duration });
-  setTimeout(() => setToast(null), duration); // you can keep this if you like
-};
-
+  const triggerToast = (message, type = "info", duration = 15000) => {
+    setToast({ message, type, duration });
+    setTimeout(() => setToast(null), duration);
+  };
 
   const handleSubmit = async () => {
     if (name.trim() === "" || files.length === 0) {
@@ -53,7 +50,6 @@ const triggerToast = (message, type = "info", duration = 15000) => {
     }
     const totalSize = files.reduce((sum, file) => sum + file.size, 0);
     if (totalSize > MAX_TOTAL_SIZE) {
-      // Updated error message
       triggerToast("❌ Total size exceeds 1GB", "error");
       return;
     }
@@ -91,7 +87,7 @@ const triggerToast = (message, type = "info", duration = 15000) => {
         return;
       }
 
-      const res = await fetch("https://filehub-gyll.onrender.com/api/uploads", {
+      const res = await fetch(`${config.API_BASE_URL}/api/uploads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -104,15 +100,12 @@ const triggerToast = (message, type = "info", duration = 15000) => {
 
       const result = await res.json();
       if (res.ok) {
-        // Log upload event to Firebase Analytics here:
         logEvent(analytics, "file_upload", {
           file_count: files.length,
           total_size_mb: (totalSize / 1024 / 1024).toFixed(2),
           uploader_name: name,
         });
 
-        // REMOVED: navigator.clipboard.writeText(code) to avoid Allow/Block prompt
-        // Show the code in the toast for ~15s
         triggerToast(`✅ Upload successful! Your code: ${code}`, "success", 15000);
         setFiles([]);
         setName("");
@@ -129,7 +122,6 @@ const triggerToast = (message, type = "info", duration = 15000) => {
     }
   };
 
-  // === Banner data - edit only here to change banners ===
   const bannerAds = [
     {
       href: "https://www.w3schools.com/html/default.asp",
@@ -156,10 +148,9 @@ const triggerToast = (message, type = "info", duration = 15000) => {
       alt: "Bottom Banner",
     },
   };
-  // === End banner data ===
 
   const CloseableBanner = ({ children, onClose }) => (
-    <div className="relative rounded-md overflow-hidden select-none bg-transparent max-w-7xl mx-auto my-4 p-2 border border-transparent">
+    <div className="relative rounded-sm overflow-hidden select-none bg-black/40 max-w-7xl mx-auto my-4 p-2 border border-white/10">
       <button
         onClick={onClose}
         aria-label="Close banner"
@@ -173,7 +164,7 @@ const triggerToast = (message, type = "info", duration = 15000) => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-[Orbitron] px-4 pt-24 relative">
+    <div className="min-h-screen bg-transparent text-white font-[Orbitron] px-4 pt-24 relative">
       {/* Loader Overlay */}
       <AnimatePresence>
         {loading && (
@@ -198,43 +189,40 @@ const triggerToast = (message, type = "info", duration = 15000) => {
         )}
       </AnimatePresence>
 
-    
-     {/* Toast */}
-<div className="fixed top-24 right-6 z-40">
-  <AnimatePresence>
-    {toast && (
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        durationMs={toast.duration || 15000}   // show up to 15s
-        onClose={() => setToast(null)}
-      />
-    )}
-  </AnimatePresence>
-</div>
-
+      {/* Toast */}
+      <div className="fixed top-24 right-6 z-40">
+        <AnimatePresence>
+          {toast && (
+            <Toast
+              message={toast.message}
+              type={toast.type}
+              durationMs={toast.duration || 15000}
+              onClose={() => setToast(null)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Top Banner */}
       {showTopBanner && (
         <CloseableBanner onClose={() => setShowTopBanner(false)}>
-          <div className="flex items-center justify-between text-white px-4 py-2 font-semibold text-center text-sm uppercase max-w-7xl mx-auto">
+          <div className="flex items-center justify-between text-white px-4 py-2 font-semibold text-center text-sm uppercase max-w-7xl mx-auto glass rounded-xl shadow-md">
             ADVERTISEMENT
           </div>
           <div
             className="flex flex-wrap justify-center overflow-hidden md:overflow-x-auto scrollbar-hide no-scrollbar max-w-7xl mx-auto px-2"
             style={{ scrollSnapType: "x mandatory" }}
           >
-            {bannerAds.map(({ href, img, alt, text, logoOnly }, idx) => (
+            {bannerAds.map(({ href, img, alt, logoOnly }, idx) => (
               <a
                 key={idx}
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-shrink-0 flex flex-col items-center justify-center m-1 rounded-md shadow-lg"
+                className="flex-shrink-0 flex flex-col items-center justify-center m-1 rounded-md shadow-lg glass"
                 style={{
                   minWidth: logoOnly ? 140 : 180,
                   maxWidth: logoOnly ? 160 : 200,
-                  backgroundColor: "#0074e8",
                   flexGrow: 1,
                   flexBasis: logoOnly ? "140px" : "180px",
                 }}
@@ -246,14 +234,6 @@ const triggerToast = (message, type = "info", duration = 15000) => {
                   style={{ width: "100%", height: logoOnly ? 80 : 120 }}
                   loading="lazy"
                 />
-                {!logoOnly && (
-                  <div
-                    className="text-white font-bold text-center text-lg py-2 px-1 select-text"
-                    style={{ userSelect: "text" }}
-                  >
-                    {text}
-                  </div>
-                )}
               </a>
             ))}
           </div>
@@ -283,23 +263,22 @@ const triggerToast = (message, type = "info", duration = 15000) => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="bg-[#111111] border border-[#2d2d2d] p-8 rounded-2xl shadow-[0_0_15px_#7f00ff33] space-y-6"
+            className="glass-panel p-8 rounded-2xl shadow-[0_0_15px_rgba(255,255,255,0.05)] space-y-6"
           >
-            <h2 className="text-3xl font-bold text-center text-white">Upload Your File</h2>
+            <h2 className="text-3xl font-bold text-center text-white font-[Poppins]">Upload Your File</h2>
 
             <input
               type="text"
               placeholder="Enter your name"
-              className="w-full p-3 rounded-xl bg-[#0e0e0e] border border-fuchsia-600 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 transition text-white text-center"
+              className="w-full p-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 transition text-white text-center backdrop-blur-sm"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
 
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition cursor-pointer ${
-                isDragActive ? "border-fuchsia-500 bg-[#1a1a1a]" : "border-gray-600 bg-[#0f0f0f]"
-              }`}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition cursor-pointer ${isDragActive ? "border-fuchsia-500 bg-white/10" : "border-white/20 bg-white/5 hover:bg-white/10"
+                }`}
             >
               <input {...getInputProps()} />
               <div className="flex flex-col items-center justify-center space-y-2">
@@ -308,7 +287,6 @@ const triggerToast = (message, type = "info", duration = 15000) => {
                   Drag & drop files here, or click to browse
                 </p>
                 <p className="text-xs text-gray-500">
-                  {/* Updated display text */}
                   Any file type — Max total 1GB
                 </p>
 
@@ -350,6 +328,74 @@ const triggerToast = (message, type = "info", duration = 15000) => {
             </a>
           </CloseableBanner>
         )}
+      </div>
+
+      {/* SEO Content Section: Features & FAQ */}
+      <div className="max-w-7xl mx-auto mt-20 mb-12 space-y-16">
+
+        {/* Features Grid */}
+        <div className="text-center">
+          <h2 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400">Why Use FylShare?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
+              <div className="w-12 h-12 mx-auto bg-fuchsia-500/20 rounded-full flex items-center justify-center mb-4 text-fuchsia-300">
+                <i className="fas fa-bolt text-xl"></i>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Lightning Fast</h3>
+              <p className="text-gray-400 text-sm">Upload files instantly without any registration. Just drag, drop, and share.</p>
+            </div>
+            <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
+              <div className="w-12 h-12 mx-auto bg-cyan-500/20 rounded-full flex items-center justify-center mb-4 text-cyan-300">
+                <i className="fas fa-shield-alt text-xl"></i>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Secure & Temporary</h3>
+              <p className="text-gray-400 text-sm">Your files are encrypted and automatically deleted after 24 hours to ensure total privacy.</p>
+            </div>
+            <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
+              <div className="w-12 h-12 mx-auto bg-purple-500/20 rounded-full flex items-center justify-center mb-4 text-purple-300">
+                <i className="fas fa-globe text-xl"></i>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Accessible Anywhere</h3>
+              <p className="text-gray-400 text-sm">Retrieve your files from any device using a simple 6-digit code. No app required.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* How It Works (SEO Text) */}
+        <div className="glass-panel p-8 rounded-2xl border border-white/10 md:flex items-center gap-8">
+          <div className="flex-1 space-y-4 text-left">
+            <h2 className="text-2xl font-bold text-white">How File Sharing Works</h2>
+            <p className="text-gray-300 leading-relaxed">
+              Fylshare simplifies the way you move data. Instead of email attachments or complex cloud links, we use a unique <span className="text-cyan-400 font-bold">6-digit code</span> system.
+              When you upload a file, our secure server generates this code. You can share it verbally, via text, or write it down.
+              The recipient simply enters this code on our Search page to download the file instantly.
+            </p>
+            <p className="text-sm text-gray-500 italic">
+              *Files are hosted for a limited time to guarantee freshness and privacy.
+            </p>
+          </div>
+
+          <div className="hidden md:block w-px h-32 bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+
+          <div className="flex-1 space-y-4 text-left">
+            <h2 className="text-2xl font-bold text-white">Universal File Support</h2>
+            <p className="text-gray-300">
+              We accept <span className="text-fuchsia-400 font-bold">ALL file types</span>. Whether it's a document, code, video, or archive, Fylshare handles it.
+              Some popular formats we handle daily:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {['PDF', 'DOCX', 'JPG', 'PNG', 'MP4', 'ZIP', 'MP3', 'EXE', 'APK', 'DMG'].map(fmt => (
+                <span key={fmt} className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-300 border border-white/10">
+                  {fmt}
+                </span>
+              ))}
+              <span className="px-3 py-1 bg-white/5 rounded-full text-xs italic text-gray-500 border border-white/5">
+                + Everything else
+              </span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* Bottom Banner */}
