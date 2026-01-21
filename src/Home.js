@@ -190,7 +190,21 @@ export default function Home() {
         </div>
 
         {/* Right Banner */}
-        {/* Right Banner Removed */}
+        {showRightBanner && (
+          <div className="hidden md:block">
+            <CloseableBanner onClose={() => setShowRightBanner(false)}>
+              <a href={sideBanners.right.href} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={sideBanners.right.img}
+                  alt={sideBanners.right.alt}
+                  className="mx-auto rounded-md max-h-[600px] w-full object-cover"
+                  loading="lazy"
+                />
+              </a>
+            </CloseableBanner>
+          </div>
+        )}
+        {!showRightBanner && <div className="hidden md:block" />}
       </div>
 
       {/* SEO Content Section: Features & FAQ */}
