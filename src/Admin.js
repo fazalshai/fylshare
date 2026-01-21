@@ -13,14 +13,7 @@ export default function Admin() {
 
   const API_BASE = "https://filehub-gyll.onrender.com";
 
-  useEffect(() => {
-    if (authenticated) {
-      if (viewMode === "uploads") fetchUploads();
-      else fetchWorkspaces();
-    }
-  }, [authenticated, viewMode]);
-
-  const fetchUploads = async () => {
+  const fetchUploads = React.useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/uploads`);
       const data = await res.json();
@@ -28,9 +21,9 @@ export default function Admin() {
     } catch (err) {
       console.error("Failed to fetch uploads", err);
     }
-  };
+  }, [API_BASE]);
 
-  const fetchWorkspaces = async () => {
+  const fetchWorkspaces = React.useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/admin/workspaces`);
       const data = await res.json();
@@ -38,7 +31,14 @@ export default function Admin() {
     } catch (err) {
       console.error("Failed to fetch workspaces", err);
     }
-  };
+  }, [API_BASE]);
+
+  useEffect(() => {
+    if (authenticated) {
+      if (viewMode === "uploads") fetchUploads();
+      else fetchWorkspaces();
+    }
+  }, [authenticated, viewMode, fetchUploads, fetchWorkspaces]);
 
   const handleLogin = (e) => {
     e.preventDefault();
