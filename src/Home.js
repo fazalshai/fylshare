@@ -89,7 +89,6 @@ export default function Home() {
 
   const GeminiBanner = ({ type, onClose }) => {
     const isVertical = type === "left" || type === "right";
-    const isTop = type === "top";
 
     return (
       <div className="relative group overflow-hidden rounded-xl border border-white/10 shadow-[0_0_20px_rgba(59,130,246,0.15)] bg-[#0f1014]">
