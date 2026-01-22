@@ -72,7 +72,7 @@ export default function InnovativeHeader() {
                     </div>
                     <span className="text-white font-bold font-[Poppins]">Fylshare</span>
                 </Link>
-                <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white p-2">
+                <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white p-2" aria-label="Toggle mobile menu">
                     {isMobileMenuOpen ? <X /> : <Menu />}
                 </button>
             </div>

@@ -222,7 +222,8 @@ export default function Home() {
               className={`border-2 border-dashed rounded-xl p-8 text-center transition cursor-pointer ${isDragActive ? "border-fuchsia-500 bg-white/10" : "border-white/20 bg-white/5 hover:bg-white/10"
                 }`}
             >
-              <input {...getInputProps({ "aria-label": "File Upload Dropzone" })} />
+              <label htmlFor="file-upload" className="sr-only">Upload files</label>
+              <input {...getInputProps({ id: "file-upload", "aria-label": "File Upload Dropzone" })} />
               <div className="flex flex-col items-center justify-center space-y-2">
                 <span className="text-5xl">📁</span>
                 <p className="text-sm text-gray-300">
