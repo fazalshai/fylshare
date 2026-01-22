@@ -87,46 +87,57 @@ export default function Home() {
     }
   };
 
-  const bannerAds = [
-    {
-      href: "https://www.w3schools.com/html/default.asp",
-      img: "https://tpc.googlesyndication.com/simgad/9379794023110126497",
-      alt: "W3Schools Banner",
-      logoOnly: true,
-    },
-  ];
+  const GeminiBanner = ({ type, onClose }) => {
+    const isVertical = type === "left" || type === "right";
+    const isTop = type === "top";
 
-  const sideBanners = {
-    left: {
-      href: "https://example.com/left",
-      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
-      alt: "Left Banner",
-    },
-    right: {
-      href: "https://example.com/right",
-      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
-      alt: "Right Banner",
-    },
-    bottom: {
-      href: "https://example.com/bottom",
-      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
-      alt: "Bottom Banner",
-    },
+    return (
+      <div className="relative group overflow-hidden rounded-xl border border-white/10 shadow-[0_0_20px_rgba(59,130,246,0.15)] bg-[#0f1014]">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-white/50 hover:text-white z-20 p-1"
+        >
+          ×
+        </button>
+
+        <a
+          href="https://aistudio.google.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`block relative z-10 p-6 ${isVertical ? 'h-[600px] flex flex-col justify-center' : 'flex items-center justify-between'}`}
+        >
+          {/* Background Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-transparent group-hover:via-purple-600/20 transition-all duration-500"></div>
+
+          {/* Content */}
+          <div className={`${isVertical ? 'text-center' : 'flex items-center gap-6'}`}>
+            <div className="bg-gradient-to-br from-blue-400 to-purple-500 p-4 rounded-2xl inline-block shadow-lg mb-4 md:mb-0">
+              <i className="fa-brands fa-google text-2xl text-white"></i>
+            </div>
+
+            <div className="text-left">
+              <h3 className={`font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 ${isVertical ? 'text-2xl mb-2' : 'text-xl'}`}>
+                Gemini AI Studio
+              </h3>
+              <p className="text-gray-400 text-xs mt-1 max-w-[200px]">
+                Build the future with Google's most capable AI model.
+              </p>
+            </div>
+          </div>
+
+          {/* CTA Button */}
+          <div className={`mt-4 md:mt-0 ${isVertical ? 'w-full' : ''}`}>
+            <span className="px-6 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-semibold text-blue-300 group-hover:bg-blue-600 group-hover:text-white group-hover:border-transparent transition-all duration-300 shadow-lg">
+              Try Now <i className="fas fa-arrow-right ml-2 text-xs"></i>
+            </span>
+          </div>
+        </a>
+      </div>
+    );
   };
 
-  const CloseableBanner = ({ children, onClose }) => (
-    <div className="relative rounded-sm overflow-hidden select-none bg-black/40 w-full mb-4 md:mb-0 border border-white/10">
-      <button
-        onClick={onClose}
-        aria-label="Close banner"
-        title="Close"
-        className="absolute top-1 right-2 text-white font-bold text-xl hover:text-gray-300 focus:outline-none select-none z-10"
-      >
-        ×
-      </button>
-      {children}
-    </div>
-  );
+  // Legacy banner data removed in favor of Component approach
 
   return (
     <div className="min-h-screen bg-transparent text-white font-[Orbitron] px-4 pt-24 relative">
@@ -170,39 +181,9 @@ export default function Home() {
 
       {/* Top Banner */}
       {showTopBanner && (
-        <CloseableBanner onClose={() => setShowTopBanner(false)}>
-          <div className="flex items-center justify-between text-white px-4 py-2 font-semibold text-center text-sm uppercase max-w-7xl mx-auto glass rounded-xl shadow-md">
-            ADVERTISEMENT
-          </div>
-          <div
-            className="flex flex-wrap justify-center overflow-hidden md:overflow-x-auto scrollbar-hide no-scrollbar max-w-7xl mx-auto px-2"
-            style={{ scrollSnapType: "x mandatory" }}
-          >
-            {bannerAds.map(({ href, img, alt, logoOnly }, idx) => (
-              <a
-                key={idx}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-shrink-0 flex flex-col items-center justify-center m-1 rounded-md shadow-lg glass"
-                style={{
-                  minWidth: logoOnly ? 140 : 180,
-                  maxWidth: logoOnly ? 160 : 200,
-                  flexGrow: 1,
-                  flexBasis: logoOnly ? "140px" : "180px",
-                }}
-              >
-                <img
-                  src={img}
-                  alt={alt}
-                  className="object-contain rounded-t-md"
-                  style={{ width: "100%", height: logoOnly ? 80 : 120 }}
-                  loading="lazy"
-                />
-              </a>
-            ))}
-          </div>
-        </CloseableBanner>
+        <div className="max-w-7xl mx-auto mb-8">
+          <GeminiBanner type="top" onClose={() => setShowTopBanner(false)} />
+        </div>
       )}
 
       {/* Main upload grid */}
@@ -211,16 +192,7 @@ export default function Home() {
         {/* Left Banner */}
         {showLeftBanner && (
           <div className="hidden md:block">
-            <CloseableBanner onClose={() => setShowLeftBanner(false)}>
-              <a href={sideBanners.left.href} target="_blank" rel="noopener noreferrer">
-                <img
-                  src={sideBanners.left.img}
-                  alt={sideBanners.left.alt}
-                  className="mx-auto rounded-md max-h-[600px] w-full object-cover"
-                  loading="lazy"
-                />
-              </a>
-            </CloseableBanner>
+            <GeminiBanner type="left" onClose={() => setShowLeftBanner(false)} />
           </div>
         )}
         {!showLeftBanner && <div className="hidden md:block" />}
@@ -285,16 +257,7 @@ export default function Home() {
         {/* Right Banner */}
         {showRightBanner && (
           <div className="hidden md:block">
-            <CloseableBanner onClose={() => setShowRightBanner(false)}>
-              <a href={sideBanners.right.href} target="_blank" rel="noopener noreferrer">
-                <img
-                  src={sideBanners.right.img}
-                  alt={sideBanners.right.alt}
-                  className="mx-auto rounded-md max-h-[600px] w-full object-cover"
-                  loading="lazy"
-                />
-              </a>
-            </CloseableBanner>
+            <GeminiBanner type="right" onClose={() => setShowRightBanner(false)} />
           </div>
         )}
         {!showRightBanner && <div className="hidden md:block" />}
@@ -371,18 +334,9 @@ export default function Home() {
       {/* Bottom Banner */}
       {/* Bottom Banner */}
       {showBottomBanner && (
-        <CloseableBanner onClose={() => setShowBottomBanner(false)}>
-          <a href={sideBanners.bottom.href} target="_blank" rel="noopener noreferrer">
-            <img
-              id="lowerfeatureshowcase300"
-              src={sideBanners.bottom.img}
-              alt={sideBanners.bottom.alt}
-              className="w-full rounded-xl max-h-[150px] object-contain"
-              loading="lazy"
-              style={{ backgroundColor: "transparent" }}
-            />
-          </a>
-        </CloseableBanner>
+        <div className="mt-8">
+          <GeminiBanner type="bottom" onClose={() => setShowBottomBanner(false)} />
+        </div>
       )}
     </div>
   );
