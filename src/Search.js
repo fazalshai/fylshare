@@ -11,6 +11,8 @@ export default function Search() {
 
   const [showLeftBanner, setShowLeftBanner] = useState(true);
   const [showRightBanner, setShowRightBanner] = useState(true);
+  const [showTopBanner, setShowTopBanner] = useState(true);
+  const [showBottomBanner, setShowBottomBanner] = useState(true);
 
   const triggerToast = (message, type = "info") => {
     setToast({ message, type });
@@ -52,6 +54,15 @@ export default function Search() {
     a.click();
   };
 
+  const bannerAds = [
+    {
+      href: "https://www.w3schools.com/html/default.asp",
+      img: "https://tpc.googlesyndication.com/simgad/9379794023110126497",
+      alt: "W3Schools Banner",
+      logoOnly: true,
+    },
+  ];
+
   // Data matched to Home.js for consistency
   const sideBanners = {
     left: {
@@ -63,6 +74,11 @@ export default function Search() {
       href: "https://example.com/right",
       img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
       alt: "Right Banner",
+    },
+    bottom: {
+      href: "https://example.com/bottom",
+      img: "https://tpc.googlesyndication.com/simgad/15999976041152607999",
+      alt: "Bottom Banner",
     },
   };
 
@@ -95,7 +111,42 @@ export default function Search() {
         </AnimatePresence>
       </div>
 
-      {/* Top Banner Removed */}
+      {/* Top Banner */}
+      {showTopBanner && (
+        <CloseableBanner onClose={() => setShowTopBanner(false)}>
+          <div className="flex items-center justify-between text-white px-4 py-2 font-semibold text-center text-sm uppercase max-w-7xl mx-auto glass rounded-xl shadow-md">
+            ADVERTISEMENT
+          </div>
+          <div
+            className="flex flex-wrap justify-center overflow-hidden md:overflow-x-auto scrollbar-hide no-scrollbar max-w-7xl mx-auto px-2"
+            style={{ scrollSnapType: "x mandatory" }}
+          >
+            {bannerAds.map(({ href, img, alt, logoOnly }, idx) => (
+              <a
+                key={idx}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 flex flex-col items-center justify-center m-1 rounded-md shadow-lg glass"
+                style={{
+                  minWidth: logoOnly ? 140 : 180,
+                  maxWidth: logoOnly ? 160 : 200,
+                  flexGrow: 1,
+                  flexBasis: logoOnly ? "140px" : "180px",
+                }}
+              >
+                <img
+                  src={img}
+                  alt={alt}
+                  className="object-contain rounded-t-md"
+                  style={{ width: "100%", height: logoOnly ? 80 : 120 }}
+                  loading="lazy"
+                />
+              </a>
+            ))}
+          </div>
+        </CloseableBanner>
+      )}
 
       {/* Main Grid Layout */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-6 items-start mt-8">
@@ -233,7 +284,21 @@ export default function Search() {
         {!showRightBanner && <div className="hidden md:block" />}
       </div>
 
-      {/* SEO Content: Retrieval Guide */}
+      {/* Bottom Banner */}
+      {showBottomBanner && (
+        <CloseableBanner onClose={() => setShowBottomBanner(false)}>
+          <a href={sideBanners.bottom.href} target="_blank" rel="noopener noreferrer">
+            <img
+              id="lowerfeatureshowcase300"
+              src={sideBanners.bottom.img}
+              alt={sideBanners.bottom.alt}
+              className="w-full rounded-xl max-h-[150px] object-contain"
+              loading="lazy"
+              style={{ backgroundColor: "transparent" }}
+            />
+          </a>
+        </CloseableBanner>
+      )}
       <div className="max-w-7xl mx-auto mt-24 mb-12 space-y-16">
         <div className="glass-panel p-8 rounded-2xl border border-white/10 text-center md:text-left flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1">
