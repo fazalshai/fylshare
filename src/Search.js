@@ -63,6 +63,7 @@ export default function Search() {
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-white/50 hover:text-white z-20 p-1"
+          aria-label="Close ad"
         >
           ×
         </button>
@@ -155,6 +156,7 @@ export default function Search() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              aria-label="Enter 6-digit code"
             />
           </div>
 
@@ -192,6 +194,7 @@ export default function Search() {
                         onClick={() => handleView(f.url)}
                         className="w-10 h-10 rounded-full bg-white/5 hover:bg-blue-500 hover:text-white text-gray-400 flex items-center justify-center transition border border-white/10"
                         title="View"
+                        aria-label={`View ${f.name}`}
                       >
                         <i className="fas fa-eye"></i>
                       </button>
@@ -199,6 +202,7 @@ export default function Search() {
                         onClick={() => handleDownload(f.url, f.name)}
                         className="w-10 h-10 rounded-full bg-white/5 hover:bg-green-500 hover:text-white text-gray-400 flex items-center justify-center transition border border-white/10"
                         title="Download"
+                        aria-label={`Download ${f.name}`}
                       >
                         <i className="fas fa-download"></i>
                       </button>

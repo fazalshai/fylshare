@@ -96,6 +96,7 @@ export default function Home() {
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-white/50 hover:text-white z-20 p-1"
+          aria-label="Close ad"
         >
           ×
         </button>
@@ -105,6 +106,7 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
           className={`block relative z-10 p-6 ${isVertical ? 'h-[600px] flex flex-col justify-center' : 'flex items-center justify-between'}`}
+          aria-label="Visit Gemini AI Studio"
         >
           {/* Background Gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-transparent group-hover:via-purple-600/20 transition-all duration-500"></div>
@@ -212,6 +214,7 @@ export default function Home() {
               className="w-full p-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 transition text-white text-center backdrop-blur-sm"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              aria-label="Enter your name"
             />
 
             <div

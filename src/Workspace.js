@@ -44,7 +44,7 @@ export default function Workspace() {
                 if (data.files) setFiles(data.files);
                 if (isLogin) refreshFiles();
             } else {
-                triggerToast(data.message || "Authentication failed", "error");
+                triggerToast(data.error || data.message || "Authentication failed", "error");
             }
         } catch (err) {
             console.error(err);
@@ -193,6 +193,7 @@ export default function Workspace() {
                                             <button
                                                 onClick={() => handleDeleteFile(f.code)}
                                                 className="p-2 bg-white/5 hover:bg-red-500 hover:text-white rounded-lg transition text-gray-400"
+                                                aria-label={`Delete ${f.name}`}
                                             >
                                                 <i className="fas fa-trash"></i>
                                             </button>
@@ -251,6 +252,7 @@ export default function Workspace() {
                             onChange={(e) => setBoxName(e.target.value)}
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 text-white placeholder-gray-600 transition"
                             placeholder="e.g. MySharedBox"
+                            aria-label="Box Name"
                         />
                     </div>
                     <div>
@@ -261,6 +263,7 @@ export default function Workspace() {
                             onChange={(e) => setPin(e.target.value)}
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 text-white placeholder-gray-600 transition"
                             placeholder="****"
+                            aria-label="Security PIN"
                         />
                     </div>
 
