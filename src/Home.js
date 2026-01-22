@@ -222,13 +222,13 @@ export default function Home() {
               className={`border-2 border-dashed rounded-xl p-8 text-center transition cursor-pointer ${isDragActive ? "border-fuchsia-500 bg-white/10" : "border-white/20 bg-white/5 hover:bg-white/10"
                 }`}
             >
-              <input {...getInputProps()} />
+              <input {...getInputProps({ "aria-label": "File Upload Dropzone" })} />
               <div className="flex flex-col items-center justify-center space-y-2">
                 <span className="text-5xl">📁</span>
                 <p className="text-sm text-gray-300">
                   Drag & drop files here, or click to browse
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-400">
                   Any file type — Max total 1GB
                 </p>
 
