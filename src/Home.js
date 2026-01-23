@@ -320,7 +320,7 @@ export default function Home() {
               Some popular formats we handle daily:
             </p>
             <div className="flex flex-wrap gap-2">
-              {['PDF', 'DOCX', 'JPG', 'PNG', 'MP4', 'ZIP', 'MP3', 'EXE', 'APK', 'DMG'].map(fmt => (
+              {['PDF', 'DOCX', 'JPG', 'PNG', 'MP4', 'ZIP', 'MP3', 'EXE', 'APK', 'DMG', 'PY', 'IPYNB'].map(fmt => (
                 <span key={fmt} className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-300 border border-white/10">
                   {fmt}
                 </span>

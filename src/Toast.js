@@ -67,12 +67,11 @@ const Toast = ({ message, type = "info", durationMs = 3000, onClose }) => {
         <motion.div
           initial={{ width: "100%" }}
           animate={{ width: `${progress}%` }}
-          className={`h-full ${
-            type === "success" ? "bg-green-400"
+          className={`h-full ${type === "success" ? "bg-green-400"
             : type === "error" ? "bg-red-400"
-            : type === "warning" ? "bg-yellow-300"
-            : "bg-blue-400"
-          }`}
+              : type === "warning" ? "bg-yellow-300"
+                : "bg-blue-400"
+            }`}
         />
       </div>
     </motion.div>
