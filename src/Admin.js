@@ -159,14 +159,14 @@ export default function Admin() {
                       {role === "main" && <td className="px-4 py-3 text-xs text-gray-400">{item.code}</td>}
                       <td className="px-4 py-3 font-medium text-white">{item.files.map(f => f.name).join(", ")}</td>
                       <td className="px-4 py-3">{item.name}</td>
-                      <td className="px-4 py-3">{new Date(item.date).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">{new Date(item.date).toLocaleString()}</td>
                     </>
                   ) : (
                     <>
                       <td className="px-4 py-3 font-bold text-fuchsia-400">{item.boxName}</td>
                       <td className="px-4 py-3 font-mono text-red-400">{item.pin}</td>
                       <td className="px-4 py-3">{item.files.length} items</td>
-                      <td className="px-4 py-3">{new Date(item.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">{new Date(item.createdAt).toLocaleString()}</td>
                     </>
                   )}
 
