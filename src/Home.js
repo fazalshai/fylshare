@@ -87,53 +87,39 @@ export default function Home() {
     }
   };
 
-  const GeminiBanner = ({ type, onClose }) => {
+  const GenericAdBanner = ({ type, onClose }) => {
     const isVertical = type === "left" || type === "right";
 
     return (
-      <div className="relative group overflow-hidden rounded-xl border border-white/10 shadow-[0_0_20px_rgba(59,130,246,0.15)] bg-[#0f1014]">
+      <div className="relative group overflow-hidden rounded-xl border border-white/5 shadow-none bg-[#0f1014]/50">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-white/50 hover:text-white z-20 p-1"
+          className="absolute top-2 right-2 text-white/30 hover:text-white z-20 p-1"
           aria-label="Close ad"
         >
           ×
         </button>
 
-        <a
-          href="https://aistudio.google.com/"
-          target="_blank"
-          rel="noopener noreferrer"
+        <div
           className={`block relative z-10 p-6 ${isVertical ? 'h-[600px] flex flex-col justify-center' : 'flex items-center justify-between'}`}
-          aria-label="Visit Gemini AI Studio"
         >
-          {/* Background Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-transparent group-hover:via-purple-600/20 transition-all duration-500"></div>
-
           {/* Content */}
           <div className={`${isVertical ? 'text-center' : 'flex items-center gap-6'}`}>
-            <div className="bg-gradient-to-br from-blue-400 to-purple-500 p-4 rounded-2xl inline-block shadow-lg mb-4 md:mb-0">
-              <i className="fa-brands fa-google text-2xl text-white"></i>
+            <div className="bg-white/5 p-4 rounded-2xl inline-block mb-4 md:mb-0">
+              <span className="text-4xl">📢</span>
             </div>
 
             <div className="text-left">
-              <h3 className={`font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 ${isVertical ? 'text-2xl mb-2' : 'text-xl'}`}>
-                Gemini AI Studio
+              <h3 className={`font-bold text-gray-400 ${isVertical ? 'text-xl mb-2' : 'text-lg'}`}>
+                Advertisement Space
               </h3>
-              <p className="text-gray-400 text-xs mt-1 max-w-[200px]">
-                Build the future with Google's most capable AI model.
+              <p className="text-gray-500 text-xs mt-1 max-w-[200px]">
+                Your ad could be here. Contact us for placements.
               </p>
             </div>
           </div>
-
-          {/* CTA Button */}
-          <div className={`mt-4 md:mt-0 ${isVertical ? 'w-full' : ''}`}>
-            <span className="px-6 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-semibold text-blue-300 group-hover:bg-blue-600 group-hover:text-white group-hover:border-transparent transition-all duration-300 shadow-lg">
-              Try Now <i className="fas fa-arrow-right ml-2 text-xs"></i>
-            </span>
-          </div>
-        </a>
+        </div>
       </div>
     );
   };
@@ -183,7 +169,7 @@ export default function Home() {
       {/* Top Banner */}
       {showTopBanner && (
         <div className="max-w-7xl mx-auto mb-8">
-          <GeminiBanner type="top" onClose={() => setShowTopBanner(false)} />
+          <GenericAdBanner type="top" onClose={() => setShowTopBanner(false)} />
         </div>
       )}
 
@@ -193,7 +179,7 @@ export default function Home() {
         {/* Left Banner */}
         {showLeftBanner && (
           <div className="hidden md:block">
-            <GeminiBanner type="left" onClose={() => setShowLeftBanner(false)} />
+            <GenericAdBanner type="left" onClose={() => setShowLeftBanner(false)} />
           </div>
         )}
         {!showLeftBanner && <div className="hidden md:block" />}
@@ -260,7 +246,7 @@ export default function Home() {
         {/* Right Banner */}
         {showRightBanner && (
           <div className="hidden md:block">
-            <GeminiBanner type="right" onClose={() => setShowRightBanner(false)} />
+            <GenericAdBanner type="right" onClose={() => setShowRightBanner(false)} />
           </div>
         )}
         {!showRightBanner && <div className="hidden md:block" />}
@@ -285,7 +271,7 @@ export default function Home() {
                 <i className="fas fa-shield-alt text-xl"></i>
               </div>
               <h3 className="text-xl font-bold mb-2">Secure & Temporary</h3>
-              <p className="text-gray-400 text-sm">Your files are encrypted and automatically deleted after 24 hours to ensure total privacy.</p>
+              <p className="text-gray-400 text-sm">Your files are encrypted and stored securely to ensure total privacy.</p>
             </div>
             <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
               <div className="w-12 h-12 mx-auto bg-purple-500/20 rounded-full flex items-center justify-center mb-4 text-purple-300">
@@ -346,7 +332,7 @@ export default function Home() {
       {/* Bottom Banner */}
       {showBottomBanner && (
         <div className="mt-8">
-          <GeminiBanner type="bottom" onClose={() => setShowBottomBanner(false)} />
+          <GenericAdBanner type="bottom" onClose={() => setShowBottomBanner(false)} />
         </div>
       )}
     </div>
