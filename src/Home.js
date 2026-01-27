@@ -298,35 +298,43 @@ export default function Home() {
         </div>
 
         {/* How It Works (SEO Text) */}
-        <div className="glass-panel p-8 rounded-2xl border border-white/10 md:flex items-center gap-8">
-          <div className="flex-1 space-y-4 text-left">
-            <h2 className="text-2xl font-bold text-white">How File Sharing Works</h2>
-            <p className="text-gray-300 leading-relaxed">
-              Fylshare simplifies the way you move data. Instead of email attachments or complex cloud links, we use a unique <span className="text-cyan-400 font-bold">6-digit code</span> system.
-              When you upload a file, our secure server generates this code. You can share it verbally, via text, or write it down.
-              The recipient simply enters this code on our Search page to download the file instantly.
-            </p>
-            <p className="text-sm text-gray-500 italic">
-              *Files are hosted for a limited time to guarantee freshness and privacy.
-            </p>
+        {/* How It Works (SEO Text) */}
+        <div className="space-y-12 mb-20">
+
+          <div className="glass-panel p-8 rounded-2xl border border-white/10 md:flex items-center gap-8">
+            <div className="flex-1 space-y-4 text-left">
+              <h2 className="text-2xl font-bold text-white font-[Orbitron]">Seamless File Sharing</h2>
+              <p className="text-gray-300 leading-relaxed text-sm">
+                Fylshare revolutionizes the way you transfer digital assets. By eliminating the need for user accounts, passwords, and complex email attachments, we provide a friction-free experience. Our unique <span className="text-cyan-400 font-bold">6-digit code system</span> ensures that sharing a file is as easy as sharing a verbal number. Whether you are a developer sharing code snippets, a designer sending proofs, or just sharing personal photos, Fylshare is the fastest route from point A to point B.
+              </p>
+            </div>
+
+            <div className="hidden md:block w-px h-32 bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+
+            <div className="flex-1 space-y-4 text-left">
+              <h2 className="text-2xl font-bold text-white font-[Orbitron]">Enterprise-Grade Security</h2>
+              <p className="text-gray-300 leading-relaxed text-sm">
+                Security is not an afterthought; it is our foundation. All files are encrypted in transit using SSL/TLS protocols. We utilize <span className="text-fuchsia-400 font-bold">Google Firebase Storage</span> for backend reliability, ensuring your data is stored on world-class infrastructure. Furthermore, our platform is designed for privacy—we do not track user activity, sell data, or require personal information.
+              </p>
+            </div>
           </div>
 
-          <div className="hidden md:block w-px h-32 bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+          <div className="glass-panel p-8 rounded-2xl border border-white/10">
+            <div className="text-left mb-6">
+              <h2 className="text-2xl font-bold text-white font-[Orbitron] mb-2">Universal Compatibility</h2>
+              <p className="text-gray-300 text-sm">
+                We built Fylshare to be agnostic. It works on every device—iPhone, Android, Windows, Mac, and Linux—without any app installation. We support every file type imaginable.
+              </p>
+            </div>
 
-          <div className="flex-1 space-y-4 text-left">
-            <h2 className="text-2xl font-bold text-white">Universal File Support</h2>
-            <p className="text-gray-300">
-              We accept <span className="text-fuchsia-400 font-bold">ALL file types</span>. Whether it's a document, code, video, or archive, Fylshare handles it.
-              Some popular formats we handle daily:
-            </p>
             <div className="flex flex-wrap gap-2">
-              {['PDF', 'DOCX', 'JPG', 'PNG', 'MP4', 'ZIP', 'MP3', 'EXE', 'APK', 'DMG', 'PY', 'IPYNB'].map(fmt => (
+              {['PDF', 'DOCX', 'JPG', 'PNG', 'MP4', 'ZIP', 'MP3', 'EXE', 'APK', 'DMG', 'PY', 'IPYNB', 'CAD', 'PSD', 'AI'].map(fmt => (
                 <span key={fmt} className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-300 border border-white/10">
                   {fmt}
                 </span>
               ))}
               <span className="px-3 py-1 bg-white/5 rounded-full text-xs italic text-gray-500 border border-white/5">
-                + Everything else
+                + and thousands more
               </span>
             </div>
           </div>
