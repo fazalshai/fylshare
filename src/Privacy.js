@@ -37,7 +37,7 @@ export default function PrivacyPolicy() {
 
                 <section>
                     <h2 className="text-xl font-bold text-fuchsia-400 mb-2">5. Contact Us</h2>
-                    <p>If you have any questions about this privacy policy, please contact us at: <a href="mailto:support@fylshare.com" className="text-cyan-400 hover:underline">support@fylshare.com</a></p>
+                    <p>If you have any questions about this privacy policy, please contact us at: <a href="mailto:fylshare.official@gmail.com" className="text-cyan-400 hover:underline">fylshare.official@gmail.com</a></p>
                 </section>
             </div>
         </div>

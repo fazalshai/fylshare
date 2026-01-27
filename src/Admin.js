@@ -42,11 +42,16 @@ export default function Admin() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (username === "fazal" && password === "9948") {
+    const ADMIN_USER = process.env.REACT_APP_ADMIN_USER || "admin";
+    const ADMIN_PASS = process.env.REACT_APP_ADMIN_PASS || "admin123";
+    const TEAM_USER = process.env.REACT_APP_TEAM_USER || "team";
+    const TEAM_PASS = process.env.REACT_APP_TEAM_PASS || "team123";
+
+    if (username === ADMIN_USER && password === ADMIN_PASS) {
       setAuthenticated(true);
       setRole("main");
       setError("");
-    } else if (username === "team" && password === "team") {
+    } else if (username === TEAM_USER && password === TEAM_PASS) {
       setAuthenticated(true);
       setRole("team");
       setError("");
