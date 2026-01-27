@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, Shield, Clock, FileText, Zap } from "lucide-react";
+import { Shield, Clock, FileText, Zap } from "lucide-react";
 
 export default function FAQ() {
     const faqs = [
