@@ -17,7 +17,7 @@ export default function TermsOfService() {
                     <ul className="list-disc pl-5 mt-2 space-y-1">
                         <li>You must not upload any illegal, harmful, or copyrighted content.</li>
                         <li>We reserve the right to delete any file without notice.</li>
-                        <li>Files are automatically deleted after 24 hours.</li>
+                        <li>Files are stored securely to ensure availability.</li>
                     </ul>
                 </section>
 

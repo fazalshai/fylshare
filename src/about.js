@@ -22,7 +22,7 @@ export default function AboutUs() {
     {
       icon: <Shield size={32} className="text-green-400" />,
       title: "Secure & Private",
-      desc: "Files are encrypted in transit and purged automatically after 24 hours.",
+      desc: "Files are encrypted in transit and stored securely on Google Cloud.",
     },
   ];
 

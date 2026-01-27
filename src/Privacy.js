@@ -15,7 +15,7 @@ export default function PrivacyPolicy() {
                     <h2 className="text-xl font-bold text-fuchsia-400 mb-2">2. Data We Collect</h2>
                     <p>We collect and format the following data:</p>
                     <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li><strong>Uploaded Files:</strong> Files are stored temporarily for 24 hours and then automatically deleted.</li>
+                        <li><strong>Uploaded Files:</strong> Files are stored securely on our servers using Google Firebase Storage.</li>
                         <li><strong>Usage Data:</strong> We may process data about your use of our website and services ("usage data"). The usage data may include your IP address, geographical location, browser type and version, operating system, referral source, length of visit, page views and website navigation paths.</li>
                         <li><strong>Cookies:</strong> We use cookies to ensure you get the best experience on our website.</li>
                     </ul>
@@ -37,7 +37,7 @@ export default function PrivacyPolicy() {
 
                 <section>
                     <h2 className="text-xl font-bold text-fuchsia-400 mb-2">5. Contact Us</h2>
-                    <p>If you have any questions about this privacy policy, please contact us via the About Us page.</p>
+                    <p>If you have any questions about this privacy policy, please contact us at: <a href="mailto:support@fylshare.com" className="text-cyan-400 hover:underline">support@fylshare.com</a></p>
                 </section>
             </div>
         </div>
