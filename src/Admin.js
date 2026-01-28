@@ -68,6 +68,10 @@ export default function Admin() {
     }
   };
 
+  const handleView = (url) => {
+    window.open(url, "_blank");
+  };
+
   const deleteBox = async (boxName) => {
     // if (!window.confirm(`Delete Box "${boxName}" and all its files?`)) return;
     // User requested "just delete no need to ask"
@@ -174,7 +178,16 @@ export default function Admin() {
                   {role === "main" && (
                     <td className="px-4 py-3 text-center">
                       {viewMode === "uploads" ? (
-                        <button onClick={() => deleteFile(item.code)} className="px-3 py-1 bg-red-600 rounded text-xs hover:bg-red-700">Delete</button>
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => item.files && item.files[0] && handleView(item.files[0].url)}
+                            className="px-3 py-1 bg-blue-600 rounded text-xs hover:bg-blue-700"
+                            title="View First File"
+                          >
+                            View
+                          </button>
+                          <button onClick={() => deleteFile(item.code)} className="px-3 py-1 bg-red-600 rounded text-xs hover:bg-red-700">Delete</button>
+                        </div>
                       ) : (
                         <button onClick={() => deleteBox(item.boxName)} className="px-3 py-1 bg-red-600 rounded text-xs hover:bg-red-700">Delete Box</button>
                       )}
