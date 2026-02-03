@@ -14,6 +14,7 @@ import Admin from "./Admin";
 import AboutUs from "./about";
 import Workspace from "./Workspace";
 
+import FAQ from "./FAQ";
 import PrivacyPolicy from "./Privacy";
 import TermsOfService from "./Terms";
 import SecurityGuide from "./SecurityGuide";
