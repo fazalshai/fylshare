@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Shield, Lock, Globe, UserX, Clock, FileText } from "lucide-react";
+import { Shield, Lock, UserX, Clock } from "lucide-react";
 
 export default function Blog() {
     const articles = [
