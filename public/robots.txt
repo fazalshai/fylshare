@@ -6,3 +6,5 @@ Allow: /
 
 User-agent: AdsBot-Google
 Allow: /
+
+Sitemap: https://fylshare.com/sitemap.xml
