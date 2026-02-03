@@ -11,6 +11,7 @@ export default function InnovativeHeader() {
         { name: "Upload", path: "/", icon: <Home size={20} /> },
         { name: "Search", path: "/search", icon: <Search size={20} /> },
         { name: "My Box", path: "/workspace", icon: <Box size={20} /> },
+        { name: "Blog", path: "/blog", icon: <Info size={20} /> },
         { name: "About", path: "/about", icon: <Info size={20} /> },
     ];
 

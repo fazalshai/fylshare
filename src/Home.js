@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import Toast from "./Toast";
@@ -329,6 +330,49 @@ export default function Home() {
       </div>
 
       {/* Bottom Banner */}
+      {/* Latest from Blog Section */}
+      <div className="max-w-7xl mx-auto mb-20 px-4">
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h2 className="text-3xl font-bold font-[Orbitron] text-white">Latest from our Blog</h2>
+            <p className="text-gray-400 mt-2">Insights on security, privacy, and file sharing technology.</p>
+          </div>
+          <Link to="/blog" className="hidden md:block text-fuchsia-400 hover:text-fuchsia-300 font-bold transition">
+            View All Articles →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Link to="/blog" className="glass-panel p-6 rounded-xl border border-white/10 hover:bg-white/5 transition group">
+            <span className="text-xs font-bold text-fuchsia-400 mb-2 block">SECURITY</span>
+            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-fuchsia-300 transition">How to Share Large Files Securely</h3>
+            <p className="text-gray-400 text-sm line-clamp-3">
+              Learn why End-to-End Encryption is critical for protecting your digital assets and how to avoid common security pitfalls.
+            </p>
+          </Link>
+          <Link to="/blog" className="glass-panel p-6 rounded-xl border border-white/10 hover:bg-white/5 transition group">
+            <span className="text-xs font-bold text-cyan-400 mb-2 block">PRIVACY</span>
+            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition">Why End-to-End Encryption Matters</h3>
+            <p className="text-gray-400 text-sm line-clamp-3">
+              Understand the technology behind AES-256 encryption and why anonymous file transfer is safer than account-based services.
+            </p>
+          </Link>
+          <Link to="/blog" className="glass-panel p-6 rounded-xl border border-white/10 hover:bg-white/5 transition group">
+            <span className="text-xs font-bold text-green-400 mb-2 block">GUIDE</span>
+            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-green-300 transition">The Benefits of Anonymous Sharing</h3>
+            <p className="text-gray-400 text-sm line-clamp-3">
+              Discover how reducing your metadata footprint protects your digital identity and improves workflow efficiency.
+            </p>
+          </Link>
+        </div>
+
+        <div className="mt-6 md:hidden text-center">
+          <Link to="/blog" className="text-fuchsia-400 hover:text-fuchsia-300 font-bold transition">
+            View All Articles →
+          </Link>
+        </div>
+      </div>
+
       {/* Bottom Banner */}
       {showBottomBanner && (
         <div className="mt-8">

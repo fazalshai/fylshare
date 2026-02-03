@@ -16,8 +16,8 @@ import Workspace from "./Workspace";
 
 import PrivacyPolicy from "./Privacy";
 import TermsOfService from "./Terms";
-import FAQ from "./FAQ";
 import SecurityGuide from "./SecurityGuide";
+import Blog from "./Blog";
 import Footer from "./Footer";
 
 
@@ -50,6 +50,7 @@ function AppContent() {
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/security" element={<SecurityGuide />} />
+          <Route path="/blog" element={<Blog />} />
         </Routes>
       </div>
       <Footer />
