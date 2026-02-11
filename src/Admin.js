@@ -140,12 +140,14 @@ export default function Admin() {
                   {role === "main" && <th className="px-4 py-3">Code</th>}
                   <th className="px-4 py-3">File Name(s)</th>
                   <th className="px-4 py-3">Uploaded By</th>
+                  <th className="px-4 py-3">Date & Time</th>
                 </>
               ) : (
                 <>
                   <th className="px-4 py-3">Box Name</th>
                   <th className="px-4 py-3 text-red-400">PIN</th>
                   <th className="px-4 py-3">Files</th>
+                  <th className="px-4 py-3">Created At</th>
                 </>
               )}
               {role === "main" && <th className="px-4 py-3 text-center">Actions</th>}
@@ -161,13 +163,15 @@ export default function Admin() {
                     <>
                       {role === "main" && <td className="px-4 py-3 text-xs text-gray-400">{item.code}</td>}
                       <td className="px-4 py-3 font-medium text-white">{item.files.map(f => f.name).join(", ")}</td>
-                      <td className="px-4 py-3">{item.name}</td>
+                      <td className="px-4 py-3">{item.name || "Anonymous"}</td>
+                      <td className="px-4 py-3 text-sm text-gray-400">{new Date(item.date).toLocaleString()}</td>
                     </>
                   ) : (
                     <>
                       <td className="px-4 py-3 font-bold text-fuchsia-400">{item.boxName}</td>
                       <td className="px-4 py-3 font-mono text-red-400">{item.pin}</td>
                       <td className="px-4 py-3">{item.files.length} items</td>
+                      <td className="px-4 py-3 text-sm text-gray-400">{new Date(item.createdAt).toLocaleString()}</td>
                     </>
                   )}
 
