@@ -1,20 +1,8 @@
 {
-    "routes": [
+    "rewrites": [
         {
-            "src": "/ads.txt",
-            "dest": "/ads.txt"
-        },
-        {
-            "src": "/sitemap.xml",
-            "dest": "/sitemap.xml"
-        },
-        {
-            "src": "/robots.txt",
-            "dest": "/robots.txt"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/index.html"
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ]
 }
