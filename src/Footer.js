@@ -19,6 +19,7 @@ export default function Footer() {
                     <Link to="/blog" className="hover:text-white transition">Blog</Link>
                     <Link to="/about" className="hover:text-white transition">About Us</Link>
                     <Link to="/security" className="hover:text-white transition">Security Center</Link>
+                    <Link to="/technology" className="hover:text-white transition">Technology</Link>
                     <Link to="/faq" className="hover:text-white transition">FAQ</Link>
                     <Link to="/privacy" className="hover:text-white transition">Privacy Policy</Link>
                     <Link to="/terms" className="hover:text-white transition">Terms of Service</Link>

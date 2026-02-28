@@ -19,6 +19,7 @@ import PrivacyPolicy from "./Privacy";
 import TermsOfService from "./Terms";
 import SecurityGuide from "./SecurityGuide";
 import Blog from "./Blog";
+import Technology from "./Technology";
 import Footer from "./Footer";
 
 
@@ -51,6 +52,7 @@ function AppContent() {
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/security" element={<SecurityGuide />} />
+          <Route path="/technology" element={<Technology />} />
           <Route path="/blog" element={<Blog />} />
         </Routes>
       </div>

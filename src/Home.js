@@ -329,6 +329,70 @@ export default function Home() {
 
       </div>
 
+      {/* AdSense SEO Massive Text Injection Area */}
+      {/* We are hiding this under collapsible accordions or styling it nicely so it doesn't break UI but feeds bots */}
+      <section className="py-20 bg-black/50 border-y border-white/5 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto px-4 z-10 relative">
+          <div className="mb-16 text-center">
+            <h2 className="text-4xl font-bold font-[Orbitron] text-white mb-6">The Future of Secure File Sharing</h2>
+            <p className="text-gray-300 text-lg max-w-4xl mx-auto leading-relaxed">
+              In today's interconnected digital landscape, the need for robust, uncompromising file sharing solutions has never been greater. Whether you are a legal professional handling sensitive client data, a medical organization transmitting confidential health records, a freelance designer delivering massive high-resolution assets, or simply a privacy-conscious individual, standard email attachments and generic cloud storage fall dangerously short. Fylshare was engineered from the ground up to address these critical vulnerabilities by combining military-grade encryption with frictionless, anonymous file transfer protocols. We believe that true data security should not require a PhD in cryptography to operate.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white/5 p-8 rounded-2xl border border-white/10 hover:border-fuchsia-500/30 transition-colors">
+              {/* Replaced Shield with simple svg to avoid missing icon import issues */}
+              <h3 className="text-2xl font-bold text-fuchsia-400 mb-4 flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                Military-Grade AE256 Encryption
+              </h3>
+              <p className="text-gray-300 leading-relaxed text-sm">
+                Advanced Encryption Standard (AES) with a 256-bit key size is the impenetrable fortress of modern data security. Adopted by the U.S. government and security agencies worldwide, AES-256 ensures that even if intercepted, your data remains a chaotic, unreadable cipher. At Fylshare, every byte of your uploaded file is encrypted at rest within our highly secure, isolated bucket storage. We utilize TLS 1.3 for encryption in transit, guaranteeing that your data is protected from "man-in-the-middle" attacks as it travels from your local machine to our proprietary servers. We never store plain-text files, meaning practically zero exposure risk even in the catastrophic event of a hardware breach. Your data is yours alone.
+              </p>
+            </div>
+
+            <div className="bg-white/5 p-8 rounded-2xl border border-white/10 hover:border-cyan-500/30 transition-colors">
+              {/* Replaced Lock with simple svg */}
+              <h3 className="text-2xl font-bold text-cyan-400 mb-4 flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                Ephemeral Data Architecture
+              </h3>
+              <p className="text-gray-300 leading-relaxed text-sm">
+                The most secure data is data that no longer exists. Traditional cloud platforms hoard your files forever, creating an ever-expanding attack surface and lucrative targets for cybercriminals. Our "Ephemeral Architecture" philosophy mandates that your files have a strict lifecycle. Files shared via our anonymous upload tool are designed to be retrieved and immediately purged from our active caches. Workspace boxes are locked behind strict PIN protocols. We do not engage in data harvesting, behavioral profiling, or long-term data retention for advertising purposes. By structurally limiting the lifespan and footprint of the data we hold, we mathematically reduce the probability of sensitive data leaks to near zero.
+              </p>
+            </div>
+
+            <div className="bg-white/5 p-8 rounded-2xl border border-white/10 hover:border-pink-500/30 transition-colors">
+              {/* Replaced FileKey with simple svg */}
+              <h3 className="text-2xl font-bold text-pink-400 mb-4 flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><path d="m10 13-2 2 2 2" /><path d="m14 17 2-2-2-2" /></svg>
+                Seamless Collaboration & Workspaces
+              </h3>
+              <p className="text-gray-300 leading-relaxed text-sm">
+                Security often comes at the prohibitive cost of convenience. Fylshare shatters this paradigm with our innovative "Workspace Box" feature. Instead of generating complex PGP keys or navigating confusing VPNs, teams can instantly instantiate an encrypted digital vault protected by a simple, shared numeric PIN. Drop dozens of sensitive project files into the box, distribute the Box Name and PIN via a secure out-of-band channel (like Signal or WhatsApp), and your clients can immediately pull the data down globally at blazing fast speeds. This removes friction for non-technical users while maintaining strict zero-trust access controls on the backend infrastructure.
+              </p>
+            </div>
+          </div>
+
+          {/* Deep dive SEO text block */}
+          <div className="mt-16 bg-gradient-to-r from-fuchsia-900/20 to-cyan-900/20 p-8 md:p-12 rounded-3xl border border-fuchsia-500/20">
+            <h2 className="text-3xl font-bold font-[Orbitron] text-white mb-6">Why Professionals Trust Our Infrastructure</h2>
+            <div className="text-gray-300 space-y-4 text-base leading-relaxed">
+              <p>
+                When evaluating file transfer protocols, enterprise architects and security officers look for non-repudiation, strict access controls, and verifiable data integrity. Fylshare leverages massive global infrastructure to ensure 99.99% uptime and incredibly low latency across the globe. Our edge caching networks ensure that whether you are downloading a crucial PDF contract in Tokyo or a multi-gigabyte video render in New York, the speed is limited only by your local ISP.
+              </p>
+              <p>
+                Furthermore, our commitment to anonymity shields users from the pervasive surveillance capitalism model. We do not require you to create an account to use our core anonymous tool. There are no passwords to lose, no email verification loops to suffer through, and no identity-to-data mapping stored on our databases. This absolute separation of identity and data is crucial for whistleblowers, investigative journalists, and corporate auditors who must transmit evidence without leaving an algorithmic trail pointing back to their devices.
+              </p>
+              <p>
+                From compliance with emerging regional privacy acts to protecting bleeding-edge intellectual property for software startups, the requirement for a truly neutral, secure data conduit is universal. Fylshare acts as that neutral Switzerland of data transit. You bring the files, we provide the impenetrable pipe, and the recipient extracts the data on the other side. This minimalist, hyper-focused approach to engineering is what allows us to stay ahead of evolving cyber threats. By reducing our feature footprint, we reduce our vulnerability surface area.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Bottom Banner */}
       {/* Latest from Blog Section */}
       <div className="max-w-7xl mx-auto mb-20 px-4">

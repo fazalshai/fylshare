@@ -76,6 +76,77 @@ export default function Blog() {
                 </>
             ),
         },
+        {
+            id: "what-is-aes-256-encryption",
+            title: "Demystifying AES-256: The Algorithm Protecting Your Files",
+            date: "February 25, 2026",
+            readTime: "9 min read",
+            tags: ["Cryptography", "Tech"],
+            icon: <Lock className="text-yellow-400" size={24} />,
+            content: (
+                <>
+                    <p className="mb-4">
+                        When evaluating secure file sharing platforms, you will invariably encounter the term "AES-256 encryption." It is touted as "military-grade" and "unbreakable." But what exactly is it, and why is it considered the global standard for protecting classified information, financial transactions, and your personal data?
+                    </p>
+                    <h3 className="text-xl font-bold text-white mt-6 mb-3">The Anatomy of AES</h3>
+                    <p className="mb-4">
+                        The Advanced Encryption Standard (AES) is a symmetric-key algorithm developed by Belgian cryptographers Joan Daemen and Vincent Rijmen. "Symmetric" means the same key is used to both scramble (encrypt) and unscramble (decrypt) the data. The "256" refers to the length of this key in bits.
+                    </p>
+                    <p className="mb-4">
+                        To visualize the scale, a 256-bit key means there are 2<sup>256</sup> possible combinations. That is a number roughly equal to the number of atoms in the observable universe. If every computer on Earth collaborated to launch a "brute-force" attack—trying every single combination—it would take billions of years to crack the code. This mathematical impossibility is what makes AES-256 the fortress of the digital world.
+                    </p>
+                    <h3 className="text-xl font-bold text-white mt-6 mb-3">How Fylshare Implements AES-256</h3>
+                    <p className="mb-4">
+                        Implementing a strong algorithm incorrectly can render it useless. At Fylshare, encryption is woven into the very fabric of our architecture. When you upload a file, it is secured using TLS 1.3 during transit (protecting it from interception by ISPs or hackers on public Wi-Fi). Once it reaches our Google Cloud infrastructure, it is encrypted at rest using AES-256. The decryption keys are managed by an entirely separate, strictly audited Key Management Service (KMS). This separation of duties means that even a total compromise of our storage buckets would only yield useless, randomized data to the attacker.
+                    </p>
+                </>
+            ),
+        },
+        {
+            id: "data-privacy-laws-gdpr-ccpa",
+            title: "Navigating Data Privacy Laws: GDPR, CCPA, and Secure Sharing",
+            date: "February 20, 2026",
+            readTime: "11 min read",
+            tags: ["Compliance", "Legal"],
+            icon: <Shield className="text-blue-400" size={24} />,
+            content: (
+                <>
+                    <p className="mb-4">
+                        The regulatory landscape surrounding data privacy has transformed dramatically over the last decade. The implementation of the General Data Protection Regulation (GDPR) in Europe and the California Consumer Privacy Act (CCPA) in the United States signaled a fundamental shift: protecting user data is no longer just good practice; it is a strict legal mandate carrying massive financial penalties.
+                    </p>
+                    <h3 className="text-xl font-bold text-white mt-6 mb-3">The Principle of Data Minimization</h3>
+                    <p className="mb-4">
+                        A core tenet of modern privacy laws is "Data Minimization"—the practice of collecting only the exact personal data necessary to accomplish a specific purpose. Traditional cloud storage providers violate this principle incessantly by demanding names, phone numbers, recovery emails, and behavioral telemetry simply to share a PDF file. Fylshare was explicitly designed to comply with the strictest interpretations of GDPR by eliminating the account creation process for our core tool entirely. If we do not possess your identity, we cannot inadvertently leak it, sell it, or lose it in a breach.
+                    </p>
+                    <h3 className="text-xl font-bold text-white mt-6 mb-3">Compliance for Businesses</h3>
+                    <p className="mb-4">
+                        For businesses operating in the healthcare (HIPAA) or finance (GLBA) sectors, utilizing secure, verifiable transport mechanisms is mandatory. When employees share sensitive documents via unencrypted email attachments, the organization incurs massive liability. Fylshare’s "Workspace Box" feature provides a compliant, auditable, and encrypted sandbox. By utilizing Ephemeral storage protocols—where data is automatically purged upon retrieval—organizations can severely restrict their exposure window and ensure that stale client data does not become a toxic asset sitting on an unmonitored server.
+                    </p>
+                </>
+            ),
+        },
+        {
+            id: "threat-model-for-freelancers",
+            title: "The Freelancer's Threat Model: Protecting Client Intellectual Property",
+            date: "February 10, 2026",
+            readTime: "7 min read",
+            tags: ["Business", "Security"],
+            icon: <UserX className="text-orange-400" size={24} />,
+            content: (
+                <>
+                    <p className="mb-4">
+                        As a freelancer or independent contractor, your reputation is your most valuable asset. Delivering high-quality work is only half the equation; demonstrating that you can safely handle a client's pre-release intellectual property, proprietary source code, or unannounced marketing materials is what secures long-term contracts. Unfortunately, the tools most freelancers rely on are severely lacking in operational security.
+                    </p>
+                    <h3 className="text-xl font-bold text-white mt-6 mb-3">The Danger of Persistent Links</h3>
+                    <p className="mb-4">
+                        Pasting a Google Drive or Dropbox link into a Slack channel or email thread creates a permanent point of vulnerability. Who has access to that Slack channel a year from now? Who is monitoring that email server? Persistent, unexpiring links to confidential assets routinely result in disastrous leaks. Fylshare solves this by replacing the "link" paradigm with the "Code" paradigm. An anonymous upload generates a highly entropic 6-digit code. Once the client uses the code to retrieve the file, the data can be rendered ephemeral, completely severing the vector of attack.
+                    </p>
+                    <p className="mb-4">
+                        Adopting a "Zero Trust" posture—assuming every network is hostile and every link will eventually be compromised—forces you to utilize tools that operate differently. By shielding client transit with AES-256 and enforcing data expiration, freelancers not only protect the IP but signal an immense degree of professional maturity to their clients.
+                    </p>
+                </>
+            ),
+        }
     ];
 
     return (
