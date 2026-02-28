@@ -1,0 +1,263 @@
+import React, { useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { motion, AnimatePresence } from "framer-motion";
+import Toast from "./Toast";
+import config from "./config";
+
+export default function TransferApp() {
+    const [name, setName] = useState("");
+    const [files, setFiles] = useState([]);
+    const [toast, setToast] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [progress, setProgress] = useState(0);
+
+    const [showLeftBanner, setShowLeftBanner] = useState(true);
+    const [showRightBanner, setShowRightBanner] = useState(true);
+    const [showTopBanner, setShowTopBanner] = useState(true);
+    const [showBottomBanner, setShowBottomBanner] = useState(true);
+
+    // 1GB Limit
+    const MAX_TOTAL_SIZE = 1024 * 1024 * 1024;
+
+    const onDrop = (acceptedFiles) => {
+        const totalSize = acceptedFiles.reduce((sum, file) => sum + file.size, 0);
+        if (totalSize > MAX_TOTAL_SIZE) {
+            triggerToast("❌ Total upload limit is 1GB", "error");
+            return;
+        }
+        setFiles(acceptedFiles);
+    };
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        multiple: true,
+        maxFiles: 10,
+        accept: { "*/*": [] },
+    });
+
+    const triggerToast = (message, type = "info", duration = 15000) => {
+        setToast({ message, type, duration });
+        setTimeout(() => setToast(null), duration);
+    };
+
+    const handleSubmit = async () => {
+        if (name.trim() === "" || files.length === 0) {
+            triggerToast("❌ Please enter your name and upload at least one file", "error");
+            return;
+        }
+        const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+        if (totalSize > MAX_TOTAL_SIZE) {
+            triggerToast("❌ Total size exceeds 1GB", "error");
+            return;
+        }
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+        setLoading(true);
+        setProgress(50); // Fake progress since fetch doesn't support progress events easily
+
+        try {
+            const formData = new FormData();
+            formData.append("name", name);
+            formData.append("code", code);
+            formData.append("size", totalSize);
+            files.forEach((file) => formData.append("files", file));
+
+            const res = await fetch(`${config.API_BASE_URL}/api/uploads`, {
+                method: "POST",
+                body: formData, // No Content-Type header; browser sets it with boundary
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+                setProgress(100);
+                triggerToast(`✅ Upload successful! Your code: ${code}`, "success", 15000);
+                setFiles([]);
+                setName("");
+            } else {
+                console.error(result);
+                triggerToast("❌ Upload failed", "error");
+            }
+        } catch (error) {
+            console.error("❌ Upload error:", error);
+            triggerToast("❌ Upload error", "error");
+        } finally {
+            setLoading(false);
+            setProgress(0);
+        }
+    };
+
+    const GenericAdBanner = ({ type, onClose }) => {
+        const isVertical = type === "left" || type === "right";
+
+        return (
+            <div className="relative group overflow-hidden rounded-xl border border-white/5 shadow-none bg-[#0f1014]/50">
+                <button
+                    onClick={onClose}
+                    className="absolute top-2 right-2 text-white/30 hover:text-white z-20 p-1"
+                    aria-label="Close ad"
+                >
+                    ×
+                </button>
+
+                <div
+                    className={`block relative z-10 p-6 ${isVertical ? 'h-[600px] flex flex-col justify-center' : 'flex items-center justify-between'}`}
+                >
+                    <div className={`${isVertical ? 'text-center' : 'flex items-center gap-6'}`}>
+                        <div className="bg-white/5 p-4 rounded-2xl inline-block mb-4 md:mb-0">
+                            <span className="text-4xl">📢</span>
+                        </div>
+
+                        <div className="text-left">
+                            <h3 className={`font-bold text-gray-400 ${isVertical ? 'text-xl mb-2' : 'text-lg'}`}>
+                                Advertisement Space
+                            </h3>
+                            <p className="text-gray-500 text-xs mt-1 max-w-[200px]">
+                                Your ad could be here. Contact us for placements.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className="min-h-screen bg-transparent text-white font-[Orbitron] px-4 pt-28 pb-20 relative">
+            <AnimatePresence>
+                {loading && (
+                    <motion.div
+                        className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div
+                            className="text-center max-w-xs px-4"
+                            initial={{ scale: 0.8 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0.8 }}
+                        >
+                            <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-fuchsia-500 border-opacity-60 mx-auto"></div>
+                            <p className="mt-4 text-lg font-semibold text-white">
+                                {progress < 100 ? `🚀 Uploading... ${progress}% completed` : "✅ Upload complete!"}
+                            </p>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <div className="fixed top-24 right-6 z-40">
+                <AnimatePresence>
+                    {toast && (
+                        <Toast
+                            message={toast.message}
+                            type={toast.type}
+                            durationMs={toast.duration || 15000}
+                            onClose={() => setToast(null)}
+                        />
+                    )}
+                </AnimatePresence>
+            </div>
+
+            <div className="text-center mb-12">
+                <motion.h1
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-4xl md:text-5xl font-bold mb-4 font-[Orbitron] bg-clip-text text-transparent bg-gradient-to-r from-fuchsia-400 to-cyan-400"
+                >
+                    Secure Transfer
+                </motion.h1>
+                <p className="text-gray-400 text-lg max-w-2xl mx-auto font-[Poppins]">
+                    End-to-End encrypted anonymous file sharing. Your files are automatically purged upon retrieval.
+                </p>
+            </div>
+
+            {showTopBanner && (
+                <div className="max-w-7xl mx-auto mb-8">
+                    <GenericAdBanner type="top" onClose={() => setShowTopBanner(false)} />
+                </div>
+            )}
+
+            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-6 items-start">
+                {showLeftBanner && (
+                    <div className="hidden md:block">
+                        <GenericAdBanner type="left" onClose={() => setShowLeftBanner(false)} />
+                    </div>
+                )}
+                {!showLeftBanner && <div className="hidden md:block" />}
+
+                <div className="md:col-span-3">
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="glass-panel p-8 rounded-2xl shadow-[0_0_15px_rgba(255,255,255,0.05)] space-y-6"
+                    >
+                        <h2 className="text-2xl font-bold text-center text-white font-[Poppins]">Upload & Generate Code</h2>
+
+                        <input
+                            type="text"
+                            placeholder="Enter your name"
+                            className="w-full p-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 transition text-white text-center backdrop-blur-sm"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            aria-label="Enter your name"
+                        />
+
+                        <div
+                            {...getRootProps()}
+                            className={`border-2 border-dashed rounded-xl p-8 text-center transition cursor-pointer ${isDragActive ? "border-fuchsia-500 bg-white/10" : "border-white/20 bg-white/5 hover:bg-white/10"
+                                }`}
+                        >
+                            <label htmlFor="file-upload" className="sr-only">Upload files</label>
+                            <input {...getInputProps({ id: "file-upload", "aria-label": "File Upload Dropzone" })} />
+                            <div className="flex flex-col items-center justify-center space-y-2">
+                                <span className="text-5xl">📁</span>
+                                <p className="text-sm text-gray-300">
+                                    Drag & drop files here, or click to browse
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                    Any file type — Max total 1GB
+                                </p>
+
+                                {files.length > 0 && (
+                                    <ul className="mt-2 text-sm text-green-400 space-y-1 font-medium">
+                                        {files.map((file, index) => (
+                                            <li key={index}>
+                                                ✅ {file.name} ({(file.size / 1024 / 1024).toFixed(1)} MB)
+                                            </li>
+                                        ))}
+                                        <li className="text-xs text-gray-400 mt-2">
+                                            Total: {(files.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(1)} MB
+                                        </li>
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleSubmit}
+                            className="w-full p-3 bg-black text-white rounded-xl hover:bg-gray-800 transition font-bold border border-white"
+                        >
+                            Upload Now
+                        </button>
+                    </motion.div>
+                </div>
+
+                {showRightBanner && (
+                    <div className="hidden md:block">
+                        <GenericAdBanner type="right" onClose={() => setShowRightBanner(false)} />
+                    </div>
+                )}
+                {!showRightBanner && <div className="hidden md:block" />}
+            </div>
+
+            {showBottomBanner && (
+                <div className="mt-12 max-w-7xl mx-auto">
+                    <GenericAdBanner type="bottom" onClose={() => setShowBottomBanner(false)} />
+                </div>
+            )}
+        </div>
+    );
+}
