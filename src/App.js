@@ -20,7 +20,6 @@ import TermsOfService from "./Terms";
 import SecurityGuide from "./SecurityGuide";
 import Blog from "./Blog";
 import Technology from "./Technology";
-import TransferApp from "./TransferApp";
 import Footer from "./Footer";
 
 
@@ -55,7 +54,6 @@ function AppContent() {
           <Route path="/security" element={<SecurityGuide />} />
           <Route path="/technology" element={<Technology />} />
           <Route path="/blog" element={<Blog />} />
-          <Route path="/transfer" element={<TransferApp />} />
         </Routes>
       </div>
       <Footer />

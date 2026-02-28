@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Search, Box, Info, Menu, X, Upload } from "lucide-react";
+import { Home, Search, Box, Info, Menu, X } from "lucide-react";
 
 export default function InnovativeHeader() {
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const navItems = [
-        { name: "Home", path: "/", icon: <Home size={20} /> },
-        { name: "Transfer App", path: "/transfer", icon: <Upload size={20} /> },
+        { name: "Upload", path: "/", icon: <Home size={20} /> },
         { name: "Search", path: "/search", icon: <Search size={20} /> },
         { name: "My Box", path: "/workspace", icon: <Box size={20} /> },
-        { name: "Archive", path: "/blog", icon: <Info size={20} /> },
+        { name: "Blog", path: "/blog", icon: <Info size={20} /> },
+        { name: "About", path: "/about", icon: <Info size={20} /> },
     ];
 
     return (
