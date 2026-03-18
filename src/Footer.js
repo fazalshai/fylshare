@@ -15,7 +15,7 @@ export default function Footer() {
                         </div>
                         <div>
                             <span className="text-gray-300 font-bold tracking-wide block">Fylshare &copy; {year}</span>
-                            <a href="mailto:hello@fylshare.com" className="text-fuchsia-400 text-xs hover:text-fuchsia-300 transition">hello@fylshare.com</a>
+                            <a href="mailto:fylshare.official@gmail.com" className="text-fuchsia-400 text-xs hover:text-fuchsia-300 transition">fylshare.official@gmail.com</a>
                         </div>
                     </div>
                     <p className="text-gray-500 text-sm max-w-xs text-center md:text-right">
