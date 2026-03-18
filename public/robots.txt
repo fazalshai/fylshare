@@ -1,10 +1,7 @@
 User-agent: *
 Allow: /
 
-User-agent: Googlebot
-Allow: /
-
-User-agent: AdsBot-Google
-Allow: /
+# Block admin page from crawlers
+Disallow: /admin
 
 Sitemap: https://fylshare.com/sitemap.xml

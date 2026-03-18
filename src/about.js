@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Upload, Search, Box, Shield, Zap, Globe } from "lucide-react";
+import { Upload, Search, Box, Shield, Zap, Globe, Lock, Users } from "lucide-react";
 
 export default function AboutUs() {
   const features = [
@@ -26,37 +26,47 @@ export default function AboutUs() {
     },
   ];
 
-  const sections = [
+  const howItWorks = [
     {
+      step: "01",
+      icon: <Upload size={28} className="text-fuchsia-400" />,
       title: "How It Works: Upload",
-      text: "Simply drag and drop your files onto the homepage. We'll generate a unique 6-digit code for you. Share this code with anyone you want to send the file to.",
-      image: "/assets/home.png",
-      reverse: false,
-      features: [
-        { icon: <Upload size={20} className="text-yellow-400" />, text: "No registration needed" },
-        { icon: <Zap size={20} className="text-cyan-400" />, text: "Up to 1GB per upload" }
-      ]
+      text: "Simply drag and drop your files onto the homepage. We'll generate a unique 6-digit code for you. Share this code with anyone you want to send the file to. No registration, no sign-up, no email required — just upload and go.",
+      highlights: [
+        { icon: <Upload size={18} className="text-yellow-400" />, text: "No registration needed" },
+        { icon: <Zap size={18} className="text-cyan-400" />, text: "Up to 1GB per upload" },
+        { icon: <Lock size={18} className="text-green-400" />, text: "AES-256 encrypted at rest" },
+      ],
     },
     {
+      step: "02",
+      icon: <Search size={28} className="text-cyan-400" />,
       title: "How It Works: Retrieval",
-      text: "Navigate to the Search page and enter the 6-digit code. You'll instantly see the files associated with that code, ready for download.",
-      image: "/assets/search.png",
-      reverse: true,
-      features: [
-        { icon: <Search size={20} className="text-fuchsia-400" />, text: "Instant file preview" },
-        { icon: <Globe size={20} className="text-green-400" />, text: "Works on any device" }
-      ]
+      text: "Navigate to the Search page and enter the 6-digit code. You'll instantly see the files associated with that code, ready for download. Works on any device — iPhone, Android, Windows, Mac, Linux — without installing any app.",
+      highlights: [
+        { icon: <Search size={18} className="text-fuchsia-400" />, text: "Instant file preview" },
+        { icon: <Globe size={18} className="text-green-400" />, text: "Works on any device" },
+        { icon: <Zap size={18} className="text-yellow-400" />, text: "Direct download links" },
+      ],
     },
     {
+      step: "03",
+      icon: <Box size={28} className="text-purple-400" />,
       title: "Your Private Workspace",
-      text: "Need to keep files longer? Create a 'Box' with a custom ID and PIN. This works like a cloud folder where you can manage files securely.",
-      image: "/assets/workspace.png",
-      reverse: false,
-      features: [
-        { icon: <Box size={20} className="text-purple-400" />, text: "PIN Protected" },
-        { icon: <Shield size={20} className="text-blue-400" />, text: "Persistent Storage" }
-      ]
+      text: "Need to keep files longer? Create a 'Box' with a custom ID and PIN. This works like a secure cloud folder where you and your team can manage files collaboratively. The Box is persistent, PIN-protected, and built on Google Cloud infrastructure.",
+      highlights: [
+        { icon: <Box size={18} className="text-purple-400" />, text: "PIN Protected" },
+        { icon: <Shield size={18} className="text-blue-400" />, text: "Persistent Storage" },
+        { icon: <Users size={18} className="text-cyan-400" />, text: "Team Collaboration" },
+      ],
     },
+  ];
+
+  const stats = [
+    { value: "1 GB", label: "Max Upload Size" },
+    { value: "10", label: "Files Per Upload" },
+    { value: "0", label: "Registrations Required" },
+    { value: "100%", label: "Free to Use" },
   ];
 
   return (
@@ -80,8 +90,23 @@ export default function AboutUs() {
         </motion.p>
       </div>
 
+      {/* Stats Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-20"
+      >
+        {stats.map((s, i) => (
+          <div key={i} className="glass-panel p-5 rounded-2xl text-center border border-white/10">
+            <div className="text-3xl font-bold font-[Orbitron] text-fuchsia-400">{s.value}</div>
+            <div className="text-gray-400 text-sm mt-1">{s.label}</div>
+          </div>
+        ))}
+      </motion.div>
+
       {/* Features Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-32">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-24">
         {features.map((f, i) => (
           <motion.div
             key={i}
@@ -89,7 +114,7 @@ export default function AboutUs() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
             viewport={{ once: true }}
-            className="glass-panel p-6 rounded-2xl flex flex-col items-center text-center hover:bg-white/10 transition-colors"
+            className="glass-panel p-6 rounded-2xl flex flex-col items-center text-center hover:bg-white/10 transition-colors border border-white/10"
           >
             <div className="mb-4 bg-white/5 p-4 rounded-full">{f.icon}</div>
             <h3 className="text-xl font-bold mb-2 font-[Orbitron]">{f.title}</h3>
@@ -98,45 +123,78 @@ export default function AboutUs() {
         ))}
       </div>
 
-      {/* Detailed Walkthrough Sections */}
-      <div className="max-w-7xl mx-auto space-y-32">
-        {sections.map((section, idx) => (
+      {/* How It Works — Step-by-Step with Icons (no broken images) */}
+      <div className="max-w-5xl mx-auto space-y-12 mb-24">
+        {howItWorks.map((step, idx) => (
           <motion.div
             key={idx}
-            initial={{ opacity: 0, x: section.reverse ? -50 : 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className={`flex flex-col ${section.reverse ? "lg:flex-row-reverse" : "lg:flex-row"} items-center gap-12`}
+            transition={{ duration: 0.5, delay: idx * 0.1 }}
+            className={`flex flex-col ${idx % 2 === 1 ? "lg:flex-row-reverse" : "lg:flex-row"} items-center gap-10`}
           >
-            <div className="flex-1 space-y-6">
-              <h2 className="text-4xl font-bold font-[Orbitron] text-fuchsia-300">{section.title}</h2>
-              <p className="text-lg text-gray-300 leading-relaxed">{section.text}</p>
-              <ul className="space-y-3 text-gray-400">
-                {section.features.map((feat, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    {feat.icon}
-                    <span>{feat.text}</span>
+            {/* Text Side */}
+            <div className="flex-1 space-y-5">
+              <div className="flex items-center gap-4">
+                <span className="text-5xl font-black font-[Orbitron] text-white/10">{step.step}</span>
+                <div className="p-3 bg-white/5 rounded-full">{step.icon}</div>
+              </div>
+              <h2 className="text-3xl font-bold font-[Orbitron] text-fuchsia-300">{step.title}</h2>
+              <p className="text-lg text-gray-300 leading-relaxed">{step.text}</p>
+              <ul className="space-y-3">
+                {step.highlights.map((h, i) => (
+                  <li key={i} className="flex items-center gap-3 text-gray-400">
+                    {h.icon}
+                    <span>{h.text}</span>
                   </li>
                 ))}
               </ul>
             </div>
+
+            {/* Visual Card Side */}
             <div className="flex-1 w-full">
               <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                <img
-                  src={section.image}
-                  alt={section.title}
-                  className="relative rounded-2xl shadow-2xl border border-white/10 w-full object-cover hover:scale-[1.02] transition-transform duration-500"
-                />
+                <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-500 to-cyan-500 rounded-2xl blur opacity-10 group-hover:opacity-20 transition-opacity"></div>
+                <div className="relative glass-panel rounded-2xl border border-white/10 p-8 text-center space-y-4">
+                  <div className="w-20 h-20 mx-auto bg-white/5 rounded-full flex items-center justify-center">
+                    {step.icon}
+                  </div>
+                  <h4 className="text-xl font-bold font-[Orbitron] text-white">{step.title}</h4>
+                  <p className="text-gray-400 text-sm">Step {step.step} of {howItWorks.length}</p>
+                  <div className="flex justify-center gap-2 mt-4">
+                    {howItWorks.map((_, dotIdx) => (
+                      <div
+                        key={dotIdx}
+                        className={`w-2 h-2 rounded-full ${dotIdx === idx ? "bg-fuchsia-400 w-6" : "bg-white/20"} transition-all`}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Footer / CTA */}
-      <div className="text-center mt-32 max-w-2xl mx-auto">
+      {/* Mission Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="max-w-4xl mx-auto mb-20 bg-gradient-to-r from-fuchsia-900/20 to-cyan-900/20 rounded-3xl p-10 border border-fuchsia-500/20"
+      >
+        <h2 className="text-3xl font-bold font-[Orbitron] text-white mb-4">Our Mission</h2>
+        <p className="text-gray-300 leading-relaxed text-lg">
+          We built Fylshare because we believed the internet needed a truly frictionless, anonymous, and secure way to share files. In a world where every app demands your phone number, email, and date of birth just to send a document, we chose a different path. Fylshare proves that great software doesn't need to harvest your identity to serve you well.
+        </p>
+        <p className="text-gray-400 leading-relaxed mt-4">
+          Fylshare is built by developers who believe in privacy as a fundamental right — not a premium feature. Every design decision we make starts with one question: does this protect the user?
+        </p>
+      </motion.div>
+
+      {/* CTA */}
+      <div className="text-center mt-12 max-w-2xl mx-auto">
         <h2 className="text-3xl font-bold mb-6 font-[Orbitron]">Ready to start sharing?</h2>
         <p className="text-gray-400 mb-8">Join thousands of users sharing files securely every day.</p>
         <a

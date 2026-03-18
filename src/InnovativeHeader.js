@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Search, Box, Info, Menu, X } from "lucide-react";
+import { Home, Search, Box, Info, Menu, X, Mail } from "lucide-react";
 
 export default function InnovativeHeader() {
     const location = useLocation();
@@ -13,6 +13,7 @@ export default function InnovativeHeader() {
         { name: "My Box", path: "/workspace", icon: <Box size={20} /> },
         { name: "Blog", path: "/blog", icon: <Info size={20} /> },
         { name: "About", path: "/about", icon: <Info size={20} /> },
+        { name: "Contact", path: "/contact", icon: <Mail size={20} /> },
     ];
 
     return (

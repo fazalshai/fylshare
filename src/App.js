@@ -12,6 +12,7 @@ import Search from "./Search";
 import InnovativeHeader from "./InnovativeHeader";
 import Admin from "./Admin";
 import AboutUs from "./about";
+import Contact from "./Contact";
 import Workspace from "./Workspace";
 
 import FAQ from "./FAQ";
@@ -48,6 +49,7 @@ function AppContent() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/workspace" element={<Workspace />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/faq" element={<FAQ />} />
