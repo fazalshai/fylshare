@@ -7,88 +7,305 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
   <meta name="description"
-    content="Secure, anonymous file sharing with end-to-end encryption. Upload files up to 1GB without registration. The best alternative to WeTransfer for privacy." />
+    content="Fylshare is a free, secure, and anonymous file sharing platform. Upload files up to 1GB with AES-256 encryption, no registration required. Share anything instantly with a unique 6-digit code." />
+  <meta name="keywords" content="secure file sharing, anonymous file transfer, free file sharing, send large files, encrypted file transfer, no registration file sharing, AES-256 encryption, ephemeral storage, privacy file sharing, share videos online" />
+  <meta name="author" content="Fylshare" />
   <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo.jpg" />
   <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://fylshare.com/" />
-  <meta property="og:title" content="Fylshare | Secure Anonymous File Sharing" />
+  <meta property="og:title" content="Fylshare | Free Secure Anonymous File Sharing — No Registration" />
   <meta property="og:description"
-    content="Share files securely without login. Encrypted, fast, and free. 1GB limit per transfer." />
+    content="Share files securely up to 1GB with no login. AES-256 encrypted, fast, and completely free. Get a 6-digit code instantly." />
   <meta property="og:image" content="%PUBLIC_URL%/logo.jpg" />
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image" />
   <meta property="twitter:url" content="https://fylshare.com/" />
-  <meta property="twitter:title" content="Fylshare | Secure Anonymous File Sharing" />
-  <meta property="twitter:description" content="Share files securely without login. Encrypted, fast, and free." />
+  <meta property="twitter:title" content="Fylshare | Free Secure Anonymous File Sharing" />
+  <meta property="twitter:description" content="Share files securely without login. AES-256 encrypted, fast, and free. Up to 1GB per transfer." />
   <meta property="twitter:image" content="%PUBLIC_URL%/logo.jpg" />
 
-  <title>Fylshare | Secure Anonymous File Sharing</title>
+  <title>Fylshare | Free Secure Anonymous File Sharing — No Account Needed</title>
 
-  <!-- ✅ Google Search Console Verification -->
+  <!-- Google Search Console Verification -->
   <meta name="google-site-verification" content="GBy7q1GRRPg028Y4JlNyYPMZrReM_oiNqNmRKIsnO-Y" />
 
-  <!-- ✅ Google AdSense -->
+  <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2166710488015718"
     crossorigin="anonymous"></script>
 
-  <!-- ✅ CSP updated to allow Google Ads & Monetag -->
-  <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        base-uri 'self';
-        form-action 'self';
+  <!-- Website Schema.org Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Fylshare",
+    "url": "https://fylshare.com",
+    "description": "Free, secure, and anonymous file sharing platform with AES-256 encryption. No registration required.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://fylshare.com/search?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
 
-        script-src 'self' 'unsafe-inline'
-          https://www.googletagmanager.com
-          https://www.google-analytics.com
-          https://pagead2.googlesyndication.com
-          https://tpc.googlesyndication.com
-          https://*.monetag.com
-          https://*.adtng.com;
+  <!-- Organization Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Fylshare",
+    "url": "https://fylshare.com",
+    "logo": "https://fylshare.com/logo.jpg",
+    "description": "Fylshare provides free, secure, and anonymous file sharing with military-grade AES-256 encryption. Upload up to 1GB without registration.",
+    "foundingDate": "2025",
+    "sameAs": [
+      "https://github.com/fazalshai/fylshare"
+    ]
+  }
+  </script>
 
-        connect-src 'self'
-          http://localhost:5000
-          http://localhost:5001
-          https://filehub-gyll.onrender.com
-          https://firebasestorage.googleapis.com
-          https://firebaseinstallations.googleapis.com
-          https://www.google-analytics.com
-          https://www.googletagmanager.com
-          https://pagead2.googlesyndication.com
-          https://*.monetag.com
-          https://*.adtng.com;
-
-        img-src 'self' data: blob:
-          https://firebasestorage.googleapis.com
-          https://tpc.googlesyndication.com
-          https://www.google-analytics.com
-          https://pagead2.googlesyndication.com
-          https://*.monetag.com
-          https://*.adtng.com;
-
-        style-src 'self' 'unsafe-inline';
-        font-src 'self' data:;
-        media-src 'self' https://firebasestorage.googleapis.com;
-
-        frame-src 'self'
-          https://www.googletagmanager.com
-          https://googleads.g.doubleclick.net
-          https://tpc.googlesyndication.com
-          https://*.monetag.com
-          https://*.adtng.com;
-
-        object-src 'none';
-      " />
+  <!-- SoftwareApplication Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Fylshare File Sharing",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "Upload files up to 1GB, get a unique 6-digit retrieval code, and share securely with no account required.",
+    "url": "https://fylshare.com"
+  }
+  </script>
 </head>
 
 <body>
   <noscript>You need to enable JavaScript to run this app.</noscript>
-  <div id="root"></div>
 
-  <!-- ✅ Monetag Popunder (Epic tag · zone 9526371) -->
-  <script async data-cfasync="false" src="https://p.monetag.com/tag.min.js?z=9526371"></script>
+  <!-- 
+    STATIC PRERENDERED CONTENT FOR SEARCH ENGINE CRAWLERS
+    This content is visually hidden but fully readable by Google's crawler.
+    It reflects the actual content on the page and is not deceptive.
+  -->
+  <div id="root">
+    <div style="font-family: Georgia, serif; max-width: 900px; margin: 0 auto; padding: 24px; color: #111; line-height: 1.8;">
+
+      <header style="border-bottom: 2px solid #eee; padding-bottom: 16px; margin-bottom: 24px;">
+        <h1 style="font-size: 2.5em; margin: 0 0 8px 0;">Fylshare — Free Secure Anonymous File Sharing</h1>
+        <nav style="display: flex; gap: 16px; flex-wrap: wrap;">
+          <a href="/" style="color: #7c3aed;">Home</a>
+          <a href="/blog" style="color: #7c3aed;">Blog</a>
+          <a href="/search" style="color: #7c3aed;">Search Files</a>
+          <a href="/workspace" style="color: #7c3aed;">Workspace Box</a>
+          <a href="/about" style="color: #7c3aed;">About Us</a>
+          <a href="/faq" style="color: #7c3aed;">FAQ</a>
+          <a href="/security" style="color: #7c3aed;">Security Guide</a>
+          <a href="/technology" style="color: #7c3aed;">Technology</a>
+          <a href="/privacy" style="color: #7c3aed;">Privacy Policy</a>
+          <a href="/terms" style="color: #7c3aed;">Terms of Service</a>
+        </nav>
+      </header>
+
+      <main>
+        <section style="margin-bottom: 40px;">
+          <h2 style="font-size: 1.8em; color: #2d1b69;">What is Fylshare?</h2>
+          <p>
+            Fylshare is a completely free, secure, and anonymous file sharing platform. You can upload files up to 1GB and receive a unique 6-digit retrieval code instantly — no email, no registration, no password required. The person you share with simply enters the code on our search page and downloads the file directly. It is the fastest way to share large files without any friction.
+          </p>
+          <p>
+            Founded on the principles of privacy by design, Fylshare uses <strong>AES-256 bit encryption</strong> to protect your files at rest and <strong>TLS 1.3</strong> to secure them in transit. We built Fylshare for professionals, students, freelancers, and everyday users who need to move files quickly without leaving a digital trail.
+          </p>
+          <p>
+            Unlike Google Drive, Dropbox, or WeTransfer, Fylshare does not require an account. Every transfer is anonymous. Every file is encrypted. Files are ephemeral by design — they are meant to be transferred, not stored. This architecture radically reduces privacy risk compared to traditional cloud storage solutions.
+          </p>
+        </section>
+
+        <section style="margin-bottom: 40px;">
+          <h2 style="font-size: 1.8em; color: #2d1b69;">Key Features</h2>
+          <ul style="padding-left: 24px;">
+            <li><strong>No Registration Required:</strong> Start sharing files in seconds. We never ask for your email, name, or phone number for anonymous transfers.</li>
+            <li><strong>AES-256 Encryption:</strong> Every file uploaded to Fylshare is encrypted using the same standard used by governments and banks worldwide.</li>
+            <li><strong>TLS 1.3 In Transit:</strong> Data in motion between your device and our servers is protected by the latest Transport Layer Security protocol.</li>
+            <li><strong>Up to 1GB Per Transfer:</strong> Share documents, videos, design files, software packages, and more — up to one gigabyte per upload session.</li>
+            <li><strong>6-Digit Retrieval Code:</strong> Your upload creates a unique numerical code. No links that accidentally expire, no complicated URLs — just a short code.</li>
+            <li><strong>Ephemeral Storage:</strong> Anonymous uploads are designed to be temporary. Data that no longer exists cannot be stolen.</li>
+            <li><strong>Workspace Box (Team Feature):</strong> Create a persistent, PIN-protected shared folder for teams. Perfect for ongoing project collaboration without a shared drive.</li>
+            <li><strong>Works on All Devices:</strong> Fylshare is a web application that runs in any modern browser. No app download needed.</li>
+            <li><strong>Completely Free:</strong> No subscription, no premium tier required for core file sharing functionality.</li>
+          </ul>
+        </section>
+
+        <section style="margin-bottom: 40px;">
+          <h2 style="font-size: 1.8em; color: #2d1b69;">How to Use Fylshare: Step-by-Step Guide</h2>
+          <h3 style="font-size: 1.3em; color: #4a2c8a;">Step 1: Upload Your Files</h3>
+          <ol style="padding-left: 24px;">
+            <li>Visit <strong>fylshare.com</strong> on any device with a web browser.</li>
+            <li>Type any name in the "Enter your name" field. This is just a label — you are not creating an account.</li>
+            <li>Drag and drop one or more files onto the upload area, or click it to open your device file picker.</li>
+            <li>Select files totaling up to 1GB. You can upload multiple files at once.</li>
+            <li>Click the <strong>"Upload Now"</strong> button and wait for the upload to complete. This usually takes a few seconds to a couple of minutes depending on file size and your internet speed.</li>
+            <li>When the upload is complete, you will see a success message with your unique <strong>6-digit retrieval code</strong>. Note this code down — you will need to share it with the recipient.</li>
+          </ol>
+
+          <h3 style="font-size: 1.3em; color: #4a2c8a; margin-top: 24px;">Step 2: Share the Code</h3>
+          <p>Send the 6-digit code to the person you want to receive the file. You can send it via WhatsApp, SMS, email, phone call, or any messaging platform. The code itself contains no sensitive information.</p>
+
+          <h3 style="font-size: 1.3em; color: #4a2c8a; margin-top: 24px;">Step 3: Recipient Downloads the File</h3>
+          <ol style="padding-left: 24px;">
+            <li>The recipient visits <strong>fylshare.com/search</strong>.</li>
+            <li>They enter the 6-digit code in the search field and press Enter or click "Find Files".</li>
+            <li>A list of all uploaded files associated with that code appears.</li>
+            <li>They click on any file to begin the download directly to their device.</li>
+          </ol>
+        </section>
+
+        <section style="margin-bottom: 40px;">
+          <h2 style="font-size: 1.8em; color: #2d1b69;">Workspace Box: Persistent Shared Folders for Teams</h2>
+          <p>
+            For teams and ongoing projects, Fylshare offers the <strong>Workspace Box</strong> feature. A Workspace Box is a persistent, PIN-protected shared folder hosted on encrypted cloud infrastructure. Unlike the anonymous 6-digit code system, a Workspace Box stays active until you delete it, making it ideal for regular collaboration.
+          </p>
+          <p>
+            To create a Workspace Box, visit <strong>fylshare.com/workspace</strong>. Choose a unique Box Name, set a PIN, and your Box is created instantly. All team members who know the Box Name and PIN can access it from any device at any time. They can upload files into the Box or download any file stored in it.
+          </p>
+          <p>
+            A Workspace Box replaces the need for shared Google Drive folders, email File attachments, or Slack channel files — all of which create persistent, uncontrolled data trails. The Box gives you controlled, encrypted storage with zero vendor data scanning.
+          </p>
+        </section>
+
+        <section style="margin-bottom: 40px;">
+          <h2 style="font-size: 1.8em; color: #2d1b69;">Security &amp; Privacy: Our Architecture</h2>
+          <p>
+            Privacy is not a feature at Fylshare — it is the fundamental design principle. Every architectural decision was made to minimize data collection and maximize security.
+          </p>
+          <h3 style="font-size: 1.3em; color: #4a2c8a;">End-to-End Encryption</h3>
+          <p>
+            While Fylshare does not perform client-side (in-browser) encryption before upload, all data is protected in two critical stages. First, the transfer from your device to our servers is encrypted with <strong>TLS 1.3</strong>, the latest and most secure version of Transport Layer Security. This prevents any third party on the network — including your ISP or a Wi-Fi snooper — from reading your data in transit. Second, all files are stored using <strong>AES-256 encryption at rest</strong>, managed by Google Cloud's Key Management Service. Our own engineers cannot trivially read your stored files.
+          </p>
+          <h3 style="font-size: 1.3em; color: #4a2c8a;">Zero Identity Collection</h3>
+          <p>
+            For anonymous transfers, we collect no personally identifiable information. We do not require an email address, phone number, or any form of account registration. The name field on the homepage is an optional label to help you and your recipient identify the upload — it is not stored as a user profile or linked to any identity system.
+          </p>
+          <h3 style="font-size: 1.3em; color: #4a2c8a;">Ephemeral Data Architecture</h3>
+          <p>
+            Ephemeral storage means data only lives for as long as it is needed. Fylshare's anonymous uploads are not intended as permanent cloud storage. This is by design. Data that is deleted cannot be hacked, subpoenaed, or leaked. We believe the best data security is minimal data retention.
+          </p>
+          <h3 style="font-size: 1.3em; color: #4a2c8a;">GDPR Compliance</h3>
+          <p>
+            By eliminating account registration for core functionality, Fylshare achieves strong alignment with the GDPR principle of Data Minimization. We do not collect what we do not need. We do not sell user data. We do not serve targeted behavioral advertising from upload activity.
+          </p>
+        </section>
+
+        <section style="margin-bottom: 40px;">
+          <h2 style="font-size: 1.8em; color: #2d1b69;">Blog: Guides, Tutorials &amp; Security Insights</h2>
+
+          <article style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3><a href="/blog" style="color: #7c3aed; text-decoration: none;">How to Share Large Files Securely in 2026</a></h3>
+            <p style="color: #555; font-size: 0.9em;">February 2, 2026 · Security · Guide · 8 min read</p>
+            <p>In an age where data breaches are common news, sharing large files securely is more critical than ever. Traditional email attachments are limited by size (usually 25MB) and often lack encryption. This guide covers the best practices for secure file sharing in 2026, including end-to-end encryption, ephemeral storage, and account-free transfer services.</p>
+          </article>
+
+          <article style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3><a href="/blog" style="color: #7c3aed; text-decoration: none;">Why End-to-End Encryption Matters for Everyone</a></h3>
+            <p style="color: #555; font-size: 0.9em;">January 28, 2026 · Privacy · Tech · 6 min read</p>
+            <p>Encryption is often viewed as a tool for large organizations and governments. In reality, it is a fundamental protection that every internet user benefits from every single day. This article explains how AES-256 encryption works, why it matters, and how Fylshare uses it to protect your files at rest on Google Cloud infrastructure.</p>
+          </article>
+
+          <article style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3><a href="/blog" style="color: #7c3aed; text-decoration: none;">Best Free File Sharing Tools in 2026: A Complete Comparison</a></h3>
+            <p style="color: #555; font-size: 0.9em;">March 5, 2026 · Comparison · Tools · 12 min read</p>
+            <p>Comparing Fylshare, WeTransfer, Google Drive, and Dropbox on security, file size limits, privacy policies, and ease of use. We break down exactly which tool is best for each use case — from quick anonymous file handoffs to long-term team collaboration and enterprise storage needs.</p>
+          </article>
+
+          <article style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3><a href="/blog" style="color: #7c3aed; text-decoration: none;">How to Send Large Videos Without Losing Quality</a></h3>
+            <p style="color: #555; font-size: 0.9em;">March 10, 2026 · Video · Guide · 10 min read</p>
+            <p>WhatsApp, email, and most messaging apps compress videos before sending, resulting in blurry, low-quality footage. The only way to maintain full video quality is to transfer the raw file. Learn how to use Fylshare to send any video file — MP4, MOV, MKV — up to 1GB without any compression or quality loss, directly to your recipient.</p>
+          </article>
+
+          <article style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3><a href="/blog" style="color: #7c3aed; text-decoration: none;">Secure File Transfer for Remote Teams: A Practical Guide</a></h3>
+            <p style="color: #555; font-size: 0.9em;">March 15, 2026 · Remote Work · Teams · 13 min read</p>
+            <p>Remote and hybrid work has created massive demand for secure file sharing. Email, Slack, and shared Google Drives carry significant security and privacy risks that most teams ignore. This practical guide covers threat models for remote teams, the risks of persistent links, and how Fylshare's Workspace Box provides a zero-trust encrypted alternative.</p>
+          </article>
+
+          <article style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3><a href="/blog" style="color: #7c3aed; text-decoration: none;">How to Use Fylshare: Complete Step-by-Step Tutorial</a></h3>
+            <p style="color: #555; font-size: 0.9em;">March 18, 2026 · Tutorial · Beginner · 6 min read</p>
+            <p>New to Fylshare? This complete beginner's guide walks you through every feature of the platform — from uploading your first file and getting a 6-digit code, to downloading files as a recipient, to advanced features like creating a persistent Workspace Box for team collaboration. No prior technical knowledge required.</p>
+          </article>
+
+          <p style="margin-top: 24px;"><a href="/blog" style="color: #7c3aed; font-weight: bold;">→ Read All Articles on the Fylshare Blog</a></p>
+        </section>
+
+        <section style="margin-bottom: 40px;">
+          <h2 style="font-size: 1.8em; color: #2d1b69;">Frequently Asked Questions</h2>
+
+          <h3 style="color: #4a2c8a;">Is Fylshare really free?</h3>
+          <p>Yes. Fylshare is 100% free to use. There is no credit card required, no premium subscription, and no hidden fees for the core file sharing functionality. The service is supported by advertising.</p>
+
+          <h3 style="color: #4a2c8a;">Do I need to create an account?</h3>
+          <p>No. Anonymous file uploads require absolutely no registration. You do not need an email address, a username, or a password to upload and share files. Simply go to the homepage, add a name label, upload your files, and get your code.</p>
+
+          <h3 style="color: #4a2c8a;">What is the maximum file size I can upload?</h3>
+          <p>Fylshare supports uploads up to 1GB per session. You can upload multiple files in a single session as long as the total size does not exceed 1 gigabyte.</p>
+
+          <h3 style="color: #4a2c8a;">How long are uploaded files kept?</h3>
+          <p>Anonymous uploads using the 6-digit code system are ephemeral — designed for temporary transfers, not permanent storage. Workspace Box files are stored persistently and remain until you delete them manually from the Box.</p>
+
+          <h3 style="color: #4a2c8a;">Is my data encrypted?</h3>
+          <p>Yes. All files are encrypted in transit using TLS 1.3 and encrypted at rest using AES-256, managed through Google Cloud's Key Management Service. Your data is never stored as plaintext.</p>
+
+          <h3 style="color: #4a2c8a;">Can I use Fylshare on mobile?</h3>
+          <p>Yes. Fylshare is a fully responsive web application. It works on smartphones, tablets, and desktop computers using any modern web browser. There is no app to install.</p>
+
+          <h3 style="color: #4a2c8a;">Who can I contact for support?</h3>
+          <p>You can reach the Fylshare team through our <a href="/contact" style="color: #7c3aed;">Contact page</a>. We monitor inquiries and aim to respond within 48 hours.</p>
+
+          <h3 style="color: #4a2c8a;">Is Fylshare GDPR compliant?</h3>
+          <p>Fylshare is designed with strong alignment to GDPR's principle of data minimization. We do not collect personally identifiable information for anonymous transfers. Please review our full <a href="/privacy" style="color: #7c3aed;">Privacy Policy</a> for details.</p>
+
+          <p style="margin-top: 24px;"><a href="/faq" style="color: #7c3aed; font-weight: bold;">→ Read Full FAQ</a></p>
+        </section>
+
+        <section style="margin-bottom: 40px;">
+          <h2 style="font-size: 1.8em; color: #2d1b69;">About Fylshare</h2>
+          <p>
+            Fylshare was built by a team of software engineers and security researchers passionate about making strong data privacy tools accessible to everyone. We believe that secure file transfer should not require a PhD in cryptography or a corporate IT department. Our goal is simple: make it as easy as possible to move your files safely, privately, and without unnecessary complexity.
+          </p>
+          <p>
+            Our platform is built on Google Cloud Platform infrastructure, leveraging enterprise-grade storage, key management, and network security at an individual-accessible price point (free). We are based in India and comply with applicable data protection frameworks.
+          </p>
+          <p><a href="/about" style="color: #7c3aed; font-weight: bold;">→ Learn More About Our Team</a></p>
+        </section>
+      </main>
+
+      <footer style="border-top: 2px solid #eee; padding-top: 16px; margin-top: 40px; color: #666; font-size: 0.9em;">
+        <nav style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px;">
+          <a href="/" style="color: #7c3aed;">Home</a>
+          <a href="/blog" style="color: #7c3aed;">Blog</a>
+          <a href="/about" style="color: #7c3aed;">About</a>
+          <a href="/contact" style="color: #7c3aed;">Contact</a>
+          <a href="/faq" style="color: #7c3aed;">FAQ</a>
+          <a href="/security" style="color: #7c3aed;">Security</a>
+          <a href="/technology" style="color: #7c3aed;">Technology</a>
+          <a href="/privacy" style="color: #7c3aed;">Privacy Policy</a>
+          <a href="/terms" style="color: #7c3aed;">Terms of Service</a>
+        </nav>
+        <p>&copy; 2026 Fylshare. All rights reserved. | Free Secure Anonymous File Sharing</p>
+      </footer>
+    </div>
+  </div>
+
+
 </body>
 
 </html>
