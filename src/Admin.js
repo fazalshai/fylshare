@@ -53,7 +53,7 @@ export default function Admin() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (username === "riyaz" && password === "9948") {
+    if (username === "fazal" && password === "9948") {
       setAuthenticated(true);
       setRole("main");
       setError("");
