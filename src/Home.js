@@ -1,29 +1,48 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
+import { Copy, Check, QrCode, Share2, Zap, Lock, ArrowRight, UploadCloud, Search, Trash2, FolderPlus } from "lucide-react";
 import Toast from "./Toast";
 import config from "./config";
 
 export default function Home() {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [files, setFiles] = useState([]);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  const [showLeftBanner, setShowLeftBanner] = useState(true);
-  const [showRightBanner, setShowRightBanner] = useState(true);
-  const [showTopBanner, setShowTopBanner] = useState(true);
-  const [showBottomBanner, setShowBottomBanner] = useState(true);
+  // Instant Quick-Retrieve Code Bar on Homepage
+  const [quickCode, setQuickCode] = useState("");
 
-  // 1GB Limit
-  const MAX_TOTAL_SIZE = 1024 * 1024 * 1024;
+  // Post-upload Persistent Transfer Ticket (stops duplicate panic uploads & drives viral sharing!)
+  const [activeTransfer, setActiveTransfer] = useState(null);
+  const [recentTransfers, setRecentTransfers] = useState([]);
+  const [copiedField, setCopiedField] = useState(null);
+
+  // 100% Free 1GB Limit to build habit and rapid user adoption
+  const MAX_TOTAL_SIZE = 1024 * 1024 * 1024; // 1GB Free
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("fylshare_recent_transfers") || "[]");
+      setRecentTransfers(saved.slice(0, 5));
+    } catch {
+      setRecentTransfers([]);
+    }
+  }, []);
+
+  const triggerToast = (message, type = "info", duration = 6000) => {
+    setToast({ message, type, duration });
+    setTimeout(() => setToast(null), duration);
+  };
 
   const onDrop = (acceptedFiles) => {
     const totalSize = acceptedFiles.reduce((sum, file) => sum + file.size, 0);
     if (totalSize > MAX_TOTAL_SIZE) {
-      triggerToast("❌ Total upload limit is 1GB", "error");
+      triggerToast("❌ Total upload limit is 1GB per session", "error");
       return;
     }
     setFiles(acceptedFiles);
@@ -36,16 +55,28 @@ export default function Home() {
     accept: { "*/*": [] },
   });
 
-  const triggerToast = (message, type = "info", duration = 15000) => {
-    setToast({ message, type, duration });
-    setTimeout(() => setToast(null), duration);
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(label);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleQuickRetrieve = (e) => {
+    e.preventDefault();
+    const cleaned = quickCode.trim();
+    if (cleaned.length !== 6 || isNaN(cleaned)) {
+      triggerToast("Enter a valid 6-digit retrieval code", "error");
+      return;
+    }
+    navigate(`/search?code=${cleaned}`);
   };
 
   const handleSubmit = async () => {
-    if (name.trim() === "" || files.length === 0) {
-      triggerToast("❌ Please enter your name and upload at least one file", "error");
+    if (files.length === 0) {
+      triggerToast("❌ Please drop or select at least one file", "error");
       return;
     }
+    const senderName = name.trim() || "Anonymous";
     const totalSize = files.reduce((sum, file) => sum + file.size, 0);
     if (totalSize > MAX_TOTAL_SIZE) {
       triggerToast("❌ Total size exceeds 1GB", "error");
@@ -54,86 +85,60 @@ export default function Home() {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
     setLoading(true);
-    setProgress(50); // Fake progress since fetch doesn't support progress events easily
+    setProgress(45);
 
     try {
       const formData = new FormData();
-      formData.append("name", name);
+      formData.append("name", senderName);
       formData.append("code", code);
       formData.append("size", totalSize);
       files.forEach((file) => formData.append("files", file));
 
       const res = await fetch(`${config.API_BASE_URL}/api/uploads`, {
         method: "POST",
-        body: formData, // No Content-Type header; browser sets it with boundary
+        body: formData,
       });
 
       const result = await res.json();
 
       if (res.ok) {
         setProgress(100);
-        triggerToast(`✅ Upload successful! Your code: ${code}`, "success", 15000);
+        const shareUrl = `${window.location.origin}/search?code=${code}`;
+        const ticket = {
+          code,
+          name: senderName,
+          fileNames: files.map((f) => f.name),
+          totalSizeMB: (totalSize / 1024 / 1024).toFixed(2),
+          shareUrl,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+        setActiveTransfer(ticket);
+        const updatedRecent = [ticket, ...recentTransfers.filter((t) => t.code !== code)].slice(0, 5);
+        setRecentTransfers(updatedRecent);
+        localStorage.setItem("fylshare_recent_transfers", JSON.stringify(updatedRecent));
+
         setFiles([]);
         setName("");
       } else {
         console.error(result);
-        triggerToast("❌ Upload failed", "error");
+        triggerToast("❌ Upload failed. Please try again.", "error");
       }
     } catch (error) {
       console.error("❌ Upload error:", error);
-      triggerToast("❌ Upload error", "error");
+      triggerToast("❌ Network error while uploading", "error");
     } finally {
       setLoading(false);
       setProgress(0);
     }
   };
 
-  const GenericAdBanner = ({ type, onClose }) => {
-    const isVertical = type === "left" || type === "right";
-
-    return (
-      <div className="relative group overflow-hidden rounded-xl border border-white/5 shadow-none bg-[#0f1014]/50">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-white/30 hover:text-white z-20 p-1"
-          aria-label="Close ad"
-        >
-          ×
-        </button>
-
-        <div
-          className={`block relative z-10 p-6 ${isVertical ? 'h-[600px] flex flex-col justify-center' : 'flex items-center justify-between'}`}
-        >
-          {/* Content */}
-          <div className={`${isVertical ? 'text-center' : 'flex items-center gap-6'}`}>
-            <div className="bg-white/5 p-4 rounded-2xl inline-block mb-4 md:mb-0">
-              <span className="text-4xl">📢</span>
-            </div>
-
-            <div className="text-left">
-              <h3 className={`font-bold text-gray-400 ${isVertical ? 'text-xl mb-2' : 'text-lg'}`}>
-                Advertisement Space
-              </h3>
-              <p className="text-gray-500 text-xs mt-1 max-w-[200px]">
-                Your ad could be here. Contact us for placements.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Legacy banner data removed in favor of Component approach
-
   return (
-    <div className="min-h-screen bg-transparent text-white font-[Orbitron] px-4 pt-24 relative">
+    <div className="min-h-screen bg-transparent text-white font-[Poppins] px-4 pt-24 relative">
       {/* Loader Overlay */}
       <AnimatePresence>
         {loading && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -144,9 +149,9 @@ export default function Home() {
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
             >
-              <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-fuchsia-500 border-opacity-60 mx-auto"></div>
+              <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-fuchsia-500 border-opacity-80 mx-auto"></div>
               <p className="mt-4 text-lg font-semibold text-white">
-                {progress < 100 ? `🚀 Uploading... ${progress}% completed` : "✅ Upload complete!"}
+                {progress < 100 ? `🚀 Uploading... ${progress}%` : "✅ Transfer Ready!"}
               </p>
             </motion.div>
           </motion.div>
@@ -160,247 +165,346 @@ export default function Home() {
             <Toast
               message={toast.message}
               type={toast.type}
-              durationMs={toast.duration || 15000}
+              durationMs={toast.duration || 6000}
               onClose={() => setToast(null)}
             />
           )}
         </AnimatePresence>
       </div>
 
-
-      {/* Top Banner */}
-      {showTopBanner && (
-        <div className="max-w-7xl mx-auto mb-8">
-          <GenericAdBanner type="top" onClose={() => setShowTopBanner(false)} />
-        </div>
-      )}
-
-      {/* Main upload grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-6 items-start">
-
-        {/* Left Banner */}
-        {showLeftBanner && (
-          <div className="hidden md:block">
-            <GenericAdBanner type="left" onClose={() => setShowLeftBanner(false)} />
+      {/* HERO SECTION: Dual Action (Instant Code Retrieval + 100% Free Upload) */}
+      <div className="max-w-5xl mx-auto mt-2">
+        {/* Quick Retrieve Bar — Top Priority for Lab / Phone Users with a 6-digit code */}
+        <form
+          onSubmit={handleQuickRetrieve}
+          className="mb-8 glass-panel p-3 sm:p-4 rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-950/30 via-black/40 to-fuchsia-950/30 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-300 shrink-0">
+              <Search size={18} />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-bold text-white">Have a 6-Digit Retrieval Code?</p>
+              <p className="text-xs text-gray-400">Enter your code to view or download files in 1 click</p>
+            </div>
           </div>
-        )}
-        {!showLeftBanner && <div className="hidden md:block" />}
 
-        {/* Upload center */}
-        <div className="md:col-span-3">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="glass-panel p-8 rounded-2xl shadow-[0_0_15px_rgba(255,255,255,0.05)] space-y-6"
-          >
-            <h2 className="text-3xl font-bold text-center text-white font-[Poppins]">Upload Your File</h2>
-
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <input
               type="text"
-              placeholder="Enter your name"
-              className="w-full p-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 transition text-white text-center backdrop-blur-sm"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              aria-label="Enter your name"
+              maxLength={6}
+              value={quickCode}
+              onChange={(e) => setQuickCode(e.target.value.replace(/\D/g, ""))}
+              placeholder="Enter 6-digit code (e.g. 687179)"
+              className="w-full sm:w-56 px-4 py-2.5 rounded-xl bg-black/50 border border-white/15 text-white font-mono tracking-widest text-center text-sm focus:outline-none focus:border-cyan-400"
             />
+            <button
+              type="submit"
+              className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-sm shrink-0 transition flex items-center gap-1.5"
+            >
+              Get File <ArrowRight size={15} />
+            </button>
+          </div>
+        </form>
 
+        {/* Main Center Area: Either Persistent Transfer Success Ticket OR Upload Card */}
+        {activeTransfer ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-panel p-8 rounded-3xl border-2 border-emerald-500/40 bg-[#0d1117]/90 shadow-[0_0_50px_rgba(16,185,129,0.15)] max-w-3xl mx-auto"
+          >
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="flex-1 text-left space-y-5 w-full">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-wider">
+                  ✅ Transfer Live &amp; Ready to Download
+                </div>
+
+                <div>
+                  <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Your 6-Digit Retrieval Code</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-5xl sm:text-6xl font-extrabold font-[Orbitron] tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-cyan-300 to-fuchsia-400">
+                      {activeTransfer.code}
+                    </span>
+                    <button
+                      onClick={() => copyToClipboard(activeTransfer.code, "code")}
+                      className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5 transition"
+                    >
+                      {copiedField === "code" ? <Check size={15} className="text-emerald-400" /> : <Copy size={15} />}
+                      {copiedField === "code" ? "Copied!" : "Copy Code"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Direct Link Copy */}
+                <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-2">
+                  <div className="truncate text-xs text-gray-300 font-mono">{activeTransfer.shareUrl}</div>
+                  <button
+                    onClick={() => copyToClipboard(activeTransfer.shareUrl, "link")}
+                    className="px-3 py-1.5 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold shrink-0 flex items-center gap-1"
+                  >
+                    {copiedField === "link" ? <Check size={13} /> : <Copy size={13} />}
+                    {copiedField === "link" ? "Link Copied" : "Copy Direct Link"}
+                  </button>
+                </div>
+
+                {/* File summary */}
+                <div className="text-xs text-gray-400">
+                  📦 <strong>{activeTransfer.fileNames.join(", ")}</strong> ({activeTransfer.totalSizeMB} MB)
+                </div>
+
+                {/* Viral Share Actions */}
+                <div className="flex flex-wrap gap-3 pt-2">
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(
+                      `Here is your file on Fylshare! Enter 6-digit code *${activeTransfer.code}* or click to download directly: ${activeTransfer.shareUrl}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2.5 rounded-xl bg-[#25D366]/20 hover:bg-[#25D366]/30 border border-[#25D366]/40 text-[#25D366] text-xs font-bold flex items-center gap-2 transition"
+                  >
+                    <Share2 size={14} /> Share on WhatsApp
+                  </a>
+                  <button
+                    onClick={() => setActiveTransfer(null)}
+                    className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-200 text-xs font-semibold transition"
+                  >
+                    + Upload More Files
+                  </button>
+                </div>
+              </div>
+
+              {/* Instant QR Code for Lab PC -> Phone Scan */}
+              <div className="bg-white p-4 rounded-2xl text-center shrink-0 shadow-xl">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+                    activeTransfer.shareUrl
+                  )}`}
+                  alt={`QR Code for ${activeTransfer.code}`}
+                  className="w-36 h-36 mx-auto"
+                />
+                <p className="text-[11px] font-bold text-black mt-2 flex items-center justify-center gap-1">
+                  <QrCode size={13} /> Scan with Phone to Download
+                </p>
+              </div>
+            </div>
+
+            {/* Free Habit Loop: Pitch Free Workspace Box for recurring usage */}
+            <div className="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-xs text-cyan-300">
+                <FolderPlus size={15} />
+                <span>Uploading lab files or project docs every day? Create a permanent PIN-locked Box for free!</span>
+              </div>
+              <Link
+                to="/workspace"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold shrink-0 transition"
+              >
+                Open Free Workspace Box →
+              </Link>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="glass-panel p-6 sm:p-10 rounded-3xl shadow-[0_0_30px_rgba(255,255,255,0.05)] border border-white/10 max-w-3xl mx-auto space-y-6"
+          >
+            <div className="text-center space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-fuchsia-500/10 border border-fuchsia-500/30 text-fuchsia-300 text-xs font-semibold">
+                <Zap size={13} /> 100% Free • Up to 1GB • No Login or WhatsApp Web Needed
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white font-[Orbitron]">
+                Upload &amp; Share in 5 Seconds
+              </h1>
+              <p className="text-gray-400 text-sm">
+                Drop lab manuals, code, CVs, or PDFs. Get an instant 6-digit code &amp; phone-scannable QR code.
+              </p>
+            </div>
+
+            {/* Dropzone */}
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition cursor-pointer ${isDragActive ? "border-fuchsia-500 bg-white/10" : "border-white/20 bg-white/5 hover:bg-white/10"
-                }`}
+              className={`border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center transition cursor-pointer ${
+                isDragActive
+                  ? "border-fuchsia-500 bg-fuchsia-500/10"
+                  : "border-white/20 bg-white/[0.03] hover:bg-white/[0.07] hover:border-fuchsia-400/50"
+              }`}
             >
-              <label htmlFor="file-upload" className="sr-only">Upload files</label>
+              <label htmlFor="file-upload" className="sr-only">
+                Upload files
+              </label>
               <input {...getInputProps({ id: "file-upload", "aria-label": "File Upload Dropzone" })} />
-              <div className="flex flex-col items-center justify-center space-y-2">
-                <span className="text-5xl">📁</span>
-                <p className="text-sm text-gray-300">
-                  Drag & drop files here, or click to browse
+              <div className="flex flex-col items-center justify-center space-y-3">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-fuchsia-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center text-fuchsia-300">
+                  <UploadCloud size={32} />
+                </div>
+                <p className="text-base font-semibold text-white">
+                  Drag &amp; drop files here, or <span className="text-fuchsia-400 underline">browse device</span>
                 </p>
                 <p className="text-xs text-gray-400">
-                  Any file type — Max total 1GB
+                  Any file type — Up to 1GB per transfer (100% Free, No Registration)
                 </p>
 
                 {files.length > 0 && (
-                  <ul className="mt-2 text-sm text-green-400 space-y-1 font-medium">
-                    {files.map((file, index) => (
-                      <li key={index}>
-                        ✅ {file.name} ({(file.size / 1024 / 1024).toFixed(1)} MB)
-                      </li>
-                    ))}
-                    <li className="text-xs text-gray-400 mt-2">
-                      Total: {(files.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(1)} MB
-                    </li>
-                  </ul>
+                  <div className="w-full max-w-md mt-4 p-4 rounded-xl bg-black/50 border border-emerald-500/30 text-left space-y-2">
+                    <div className="flex justify-between items-center text-xs text-emerald-400 font-bold">
+                      <span>{files.length} file(s) selected</span>
+                      <span>
+                        Total: {(files.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(2)} MB
+                      </span>
+                    </div>
+                    <ul className="text-xs text-gray-200 space-y-1 max-h-28 overflow-y-auto">
+                      {files.map((file, index) => (
+                        <li key={index} className="truncate">
+                          ✅ {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
             </div>
 
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Your Name / File Label (Optional)</label>
+              <input
+                type="text"
+                placeholder="e.g. CSE Lab, Abhishek, Sydney Drafting (optional)"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:border-fuchsia-500 transition text-white text-sm"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                aria-label="Enter your name"
+              />
+            </div>
+
             <button
               onClick={handleSubmit}
-              className="w-full p-3 bg-black text-white rounded-xl hover:bg-gray-800 transition font-bold border border-white"
+              className="w-full py-4 bg-gradient-to-r from-fuchsia-600 to-cyan-600 hover:from-fuchsia-500 hover:to-cyan-500 text-white rounded-xl transition font-bold text-base shadow-lg shadow-fuchsia-500/20"
             >
-              Upload Now
+              Upload &amp; Get 6-Digit Code →
             </button>
           </motion.div>
-        </div>
+        )}
 
-        {/* Right Banner */}
-        {showRightBanner && (
-          <div className="hidden md:block">
-            <GenericAdBanner type="right" onClose={() => setShowRightBanner(false)} />
+        {/* Recent Uploads Saved on This Device (Prevents Lost Codes!) */}
+        {recentTransfers.length > 0 && (
+          <div className="max-w-3xl mx-auto mt-6 glass-panel p-5 rounded-2xl border border-white/10">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                📌 Your Recent Transfers on This Device (Click to view QR &amp; Code anytime)
+              </span>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("fylshare_recent_transfers");
+                  setRecentTransfers([]);
+                }}
+                className="text-xs text-gray-500 hover:text-red-400 flex items-center gap-1"
+              >
+                <Trash2 size={12} /> Clear
+              </button>
+            </div>
+            <div className="space-y-2">
+              {recentTransfers.map((item) => (
+                <div
+                  key={item.code}
+                  className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-white/5 border border-white/5 text-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="px-2.5 py-1 rounded-lg bg-fuchsia-500/20 border border-fuchsia-500/40 text-fuchsia-300 font-mono font-bold text-sm">
+                      {item.code}
+                    </span>
+                    <div>
+                      <span className="text-white font-medium">{item.fileNames.join(", ")}</span>
+                      <span className="text-gray-500 ml-2">({item.totalSizeMB} MB • {item.timestamp})</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setActiveTransfer(item)}
+                      className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold"
+                    >
+                      Show QR &amp; Code
+                    </button>
+                    <Link
+                      to={`/search?code=${item.code}`}
+                      className="px-3 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 font-semibold"
+                    >
+                      Open
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
-        {!showRightBanner && <div className="hidden md:block" />}
       </div>
 
       {/* SEO Content Section: Features & FAQ */}
-      < div className="max-w-7xl mx-auto mt-20 mb-12 space-y-16" >
-
-        {/* Features Grid */}
-        < div className="text-center" >
-          <h2 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400">Why Use FylShare?</h2>
+      <div className="max-w-7xl mx-auto mt-20 mb-12 space-y-16">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400 font-[Orbitron]">
+            Why Thousands Switch to Fylshare
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
               <div className="w-12 h-12 mx-auto bg-fuchsia-500/20 rounded-full flex items-center justify-center mb-4 text-fuchsia-300">
-                <i className="fas fa-bolt text-xl"></i>
+                <Zap size={22} />
               </div>
-              <h3 className="text-xl font-bold mb-2">Lightning Fast</h3>
-              <p className="text-gray-400 text-sm">Upload files instantly without any registration. Just drag, drop, and share.</p>
+              <h3 className="text-xl font-bold mb-2">Zero Account Friction</h3>
+              <p className="text-gray-400 text-sm">
+                Move files between college lab PCs, print shops, and phones without logging into personal email or WhatsApp Web.
+              </p>
             </div>
             <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
               <div className="w-12 h-12 mx-auto bg-cyan-500/20 rounded-full flex items-center justify-center mb-4 text-cyan-300">
-                <i className="fas fa-shield-alt text-xl"></i>
+                <QrCode size={22} />
               </div>
-              <h3 className="text-xl font-bold mb-2">Secure & Temporary</h3>
-              <p className="text-gray-400 text-sm">Your files are encrypted and stored securely to ensure total privacy.</p>
+              <h3 className="text-xl font-bold mb-2">6-Digit Code &amp; Instant QR</h3>
+              <p className="text-gray-400 text-sm">
+                Every upload generates a short 6-digit numerical code and scannable QR code for instant cross-device retrieval.
+              </p>
             </div>
             <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
               <div className="w-12 h-12 mx-auto bg-purple-500/20 rounded-full flex items-center justify-center mb-4 text-purple-300">
-                <i className="fas fa-globe text-xl"></i>
+                <Lock size={22} />
               </div>
-              <h3 className="text-xl font-bold mb-2">Accessible Anywhere</h3>
-              <p className="text-gray-400 text-sm">Retrieve your files from any device using a simple 6-digit code. No app required.</p>
+              <h3 className="text-xl font-bold mb-2">AES-256 &amp; Ephemeral Storage</h3>
+              <p className="text-gray-400 text-sm">
+                Encrypted in transit via TLS 1.3 and at rest via AES-256, with PIN-locked Workspace Boxes for ongoing projects.
+              </p>
             </div>
           </div>
         </div>
 
-        {/* How It Works (SEO Text) */}
-        {/* How It Works (SEO Text) */}
-        <div className="space-y-12 mb-20">
-
-          <div className="glass-panel p-8 rounded-2xl border border-white/10 md:flex items-center gap-8">
-            <div className="flex-1 space-y-4 text-left">
-              <h2 className="text-2xl font-bold text-white font-[Orbitron]">Seamless File Sharing</h2>
-              <p className="text-gray-300 leading-relaxed text-sm">
-                Fylshare revolutionizes the way you transfer digital assets. By eliminating the need for user accounts, passwords, and complex email attachments, we provide a friction-free experience. Our unique <span className="text-cyan-400 font-bold">6-digit code system</span> ensures that sharing a file is as easy as sharing a verbal number. Whether you are a developer sharing code snippets, a designer sending proofs, or just sharing personal photos, Fylshare is the fastest route from point A to point B.
-              </p>
-            </div>
-
-            <div className="hidden md:block w-px h-32 bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
-
-            <div className="flex-1 space-y-4 text-left">
-              <h2 className="text-2xl font-bold text-white font-[Orbitron]">Enterprise-Grade Security</h2>
-              <p className="text-gray-300 leading-relaxed text-sm">
-                Security is not an afterthought; it is our foundation. All files are encrypted in transit using SSL/TLS protocols. We utilize <span className="text-fuchsia-400 font-bold">Google Firebase Storage</span> for backend reliability, ensuring your data is stored on world-class infrastructure. Furthermore, our platform is designed for privacy—we do not track user activity, sell data, or require personal information.
-              </p>
-            </div>
-          </div>
-
-          <div className="glass-panel p-8 rounded-2xl border border-white/10">
-            <div className="text-left mb-6">
-              <h2 className="text-2xl font-bold text-white font-[Orbitron] mb-2">Universal Compatibility</h2>
-              <p className="text-gray-300 text-sm">
-                We built Fylshare to be agnostic. It works on every device—iPhone, Android, Windows, Mac, and Linux—without any app installation. We support every file type imaginable.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {['PDF', 'DOCX', 'JPG', 'PNG', 'MP4', 'ZIP', 'MP3', 'EXE', 'APK', 'DMG', 'PY', 'IPYNB', 'CAD', 'PSD', 'AI'].map(fmt => (
-                <span key={fmt} className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-300 border border-white/10">
-                  {fmt}
-                </span>
-              ))}
-              <span className="px-3 py-1 bg-white/5 rounded-full text-xs italic text-gray-500 border border-white/5">
-                + and thousands more
-              </span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* AdSense SEO Massive Text Injection Area */}
-      {/* We are hiding this under collapsible accordions or styling it nicely so it doesn't break UI but feeds bots */}
-      <section className="py-20 bg-black/50 border-y border-white/5 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-4 z-10 relative">
-          <div className="mb-16 text-center">
-            <h2 className="text-4xl font-bold font-[Orbitron] text-white mb-6">The Future of Secure File Sharing</h2>
-            <p className="text-gray-300 text-lg max-w-4xl mx-auto leading-relaxed">
-              In today's interconnected digital landscape, the need for robust, uncompromising file sharing solutions has never been greater. Whether you are a legal professional handling sensitive client data, a medical organization transmitting confidential health records, a freelance designer delivering massive high-resolution assets, or simply a privacy-conscious individual, standard email attachments and generic cloud storage fall dangerously short. Fylshare was engineered from the ground up to address these critical vulnerabilities by combining military-grade encryption with frictionless, anonymous file transfer protocols. We believe that true data security should not require a PhD in cryptography to operate.
+        {/* Universal Compatibility */}
+        <div className="glass-panel p-8 rounded-2xl border border-white/10">
+          <div className="text-left mb-6">
+            <h2 className="text-2xl font-bold text-white font-[Orbitron] mb-2">Universal File Compatibility</h2>
+            <p className="text-gray-300 text-sm">
+              Works on iPhone, Android, Windows, Mac, and Linux browsers with zero app installation.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white/5 p-8 rounded-2xl border border-white/10 hover:border-fuchsia-500/30 transition-colors">
-              {/* Replaced Shield with simple svg to avoid missing icon import issues */}
-              <h3 className="text-2xl font-bold text-fuchsia-400 mb-4 flex items-center gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-                Military-Grade AE256 Encryption
-              </h3>
-              <p className="text-gray-300 leading-relaxed text-sm">
-                Advanced Encryption Standard (AES) with a 256-bit key size is the impenetrable fortress of modern data security. Adopted by the U.S. government and security agencies worldwide, AES-256 ensures that even if intercepted, your data remains a chaotic, unreadable cipher. At Fylshare, every byte of your uploaded file is encrypted at rest within our highly secure, isolated bucket storage. We utilize TLS 1.3 for encryption in transit, guaranteeing that your data is protected from "man-in-the-middle" attacks as it travels from your local machine to our proprietary servers. We never store plain-text files, meaning practically zero exposure risk even in the catastrophic event of a hardware breach. Your data is yours alone.
-              </p>
-            </div>
-
-            <div className="bg-white/5 p-8 rounded-2xl border border-white/10 hover:border-cyan-500/30 transition-colors">
-              {/* Replaced Lock with simple svg */}
-              <h3 className="text-2xl font-bold text-cyan-400 mb-4 flex items-center gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-                Ephemeral Data Architecture
-              </h3>
-              <p className="text-gray-300 leading-relaxed text-sm">
-                The most secure data is data that no longer exists. Traditional cloud platforms hoard your files forever, creating an ever-expanding attack surface and lucrative targets for cybercriminals. Our "Ephemeral Architecture" philosophy mandates that your files have a strict lifecycle. Files shared via our anonymous upload tool are designed to be retrieved and immediately purged from our active caches. Workspace boxes are locked behind strict PIN protocols. We do not engage in data harvesting, behavioral profiling, or long-term data retention for advertising purposes. By structurally limiting the lifespan and footprint of the data we hold, we mathematically reduce the probability of sensitive data leaks to near zero.
-              </p>
-            </div>
-
-            <div className="bg-white/5 p-8 rounded-2xl border border-white/10 hover:border-pink-500/30 transition-colors">
-              {/* Replaced FileKey with simple svg */}
-              <h3 className="text-2xl font-bold text-pink-400 mb-4 flex items-center gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><path d="m10 13-2 2 2 2" /><path d="m14 17 2-2-2-2" /></svg>
-                Seamless Collaboration & Workspaces
-              </h3>
-              <p className="text-gray-300 leading-relaxed text-sm">
-                Security often comes at the prohibitive cost of convenience. Fylshare shatters this paradigm with our innovative "Workspace Box" feature. Instead of generating complex PGP keys or navigating confusing VPNs, teams can instantly instantiate an encrypted digital vault protected by a simple, shared numeric PIN. Drop dozens of sensitive project files into the box, distribute the Box Name and PIN via a secure out-of-band channel (like Signal or WhatsApp), and your clients can immediately pull the data down globally at blazing fast speeds. This removes friction for non-technical users while maintaining strict zero-trust access controls on the backend infrastructure.
-              </p>
-            </div>
-          </div>
-
-          {/* Deep dive SEO text block */}
-          <div className="mt-16 bg-gradient-to-r from-fuchsia-900/20 to-cyan-900/20 p-8 md:p-12 rounded-3xl border border-fuchsia-500/20">
-            <h2 className="text-3xl font-bold font-[Orbitron] text-white mb-6">Why Professionals Trust Our Infrastructure</h2>
-            <div className="text-gray-300 space-y-4 text-base leading-relaxed">
-              <p>
-                When evaluating file transfer protocols, enterprise architects and security officers look for non-repudiation, strict access controls, and verifiable data integrity. Fylshare leverages massive global infrastructure to ensure 99.99% uptime and incredibly low latency across the globe. Our edge caching networks ensure that whether you are downloading a crucial PDF contract in Tokyo or a multi-gigabyte video render in New York, the speed is limited only by your local ISP.
-              </p>
-              <p>
-                Furthermore, our commitment to anonymity shields users from the pervasive surveillance capitalism model. We do not require you to create an account to use our core anonymous tool. There are no passwords to lose, no email verification loops to suffer through, and no identity-to-data mapping stored on our databases. This absolute separation of identity and data is crucial for whistleblowers, investigative journalists, and corporate auditors who must transmit evidence without leaving an algorithmic trail pointing back to their devices.
-              </p>
-              <p>
-                From compliance with emerging regional privacy acts to protecting bleeding-edge intellectual property for software startups, the requirement for a truly neutral, secure data conduit is universal. Fylshare acts as that neutral Switzerland of data transit. You bring the files, we provide the impenetrable pipe, and the recipient extracts the data on the other side. This minimalist, hyper-focused approach to engineering is what allows us to stay ahead of evolving cyber threats. By reducing our feature footprint, we reduce our vulnerability surface area.
-              </p>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {["PDF", "DOCX", "JPG", "PNG", "MP4", "ZIP", "HTML/CSS/JS", "PY", "IPYNB", "CAD/DWG", "PSD", "APK"].map((fmt) => (
+              <span key={fmt} className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-300 border border-white/10">
+                {fmt}
+              </span>
+            ))}
+            <span className="px-3 py-1 bg-white/5 rounded-full text-xs italic text-gray-500 border border-white/5">
+              + any file format up to 1GB
+            </span>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Bottom Banner */}
       {/* Latest from Blog Section */}
       <div className="max-w-7xl mx-auto mb-20 px-4">
         <div className="flex justify-between items-end mb-8">
           <div>
             <h2 className="text-3xl font-bold font-[Orbitron] text-white">Latest from our Blog</h2>
-            <p className="text-gray-400 mt-2">Insights on security, privacy, and file sharing technology.</p>
+            <p className="text-gray-400 mt-2">Guides on fast file transfers, campus workflows, and security.</p>
           </div>
           <Link to="/blog" className="hidden md:block text-fuchsia-400 hover:text-fuchsia-300 font-bold transition">
             View All Articles →
@@ -412,38 +516,25 @@ export default function Home() {
             <span className="text-xs font-bold text-fuchsia-400 mb-2 block">SECURITY</span>
             <h3 className="text-lg font-bold text-white mb-2 group-hover:text-fuchsia-300 transition">How to Share Large Files Securely</h3>
             <p className="text-gray-400 text-sm line-clamp-3">
-              Learn why End-to-End Encryption is critical for protecting your digital assets and how to avoid common security pitfalls.
+              Learn why TLS 1.3 and AES-256 encryption are critical for protecting your digital assets and avoiding account compromises on shared PCs.
             </p>
           </Link>
           <Link to="/blog" className="glass-panel p-6 rounded-xl border border-white/10 hover:bg-white/5 transition group">
             <span className="text-xs font-bold text-cyan-400 mb-2 block">PRIVACY</span>
-            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition">Why End-to-End Encryption Matters</h3>
+            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition">Why Anonymous File Transfer Beats Cloud Drives</h3>
             <p className="text-gray-400 text-sm line-clamp-3">
-              Understand the technology behind AES-256 encryption and why anonymous file transfer is safer than account-based services.
+              Understand why signing into Google Drive or WhatsApp Web on lab and print-shop computers puts your identity at risk.
             </p>
           </Link>
           <Link to="/blog" className="glass-panel p-6 rounded-xl border border-white/10 hover:bg-white/5 transition group">
-            <span className="text-xs font-bold text-green-400 mb-2 block">GUIDE</span>
-            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-green-300 transition">The Benefits of Anonymous Sharing</h3>
+            <span className="text-xs font-bold text-green-400 mb-2 block">TEAMS &amp; LABS</span>
+            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-green-300 transition">Sharing Lab Manuals &amp; Project Files in Seconds</h3>
             <p className="text-gray-400 text-sm line-clamp-3">
-              Discover how reducing your metadata footprint protects your digital identity and improves workflow efficiency.
+              How students, professors, and studios share PDFs and project packages using 6-digit retrieval codes and PIN-protected Boxes.
             </p>
           </Link>
         </div>
-
-        <div className="mt-6 md:hidden text-center">
-          <Link to="/blog" className="text-fuchsia-400 hover:text-fuchsia-300 font-bold transition">
-            View All Articles →
-          </Link>
-        </div>
       </div>
-
-      {/* Bottom Banner */}
-      {showBottomBanner && (
-        <div className="mt-8">
-          <GenericAdBanner type="bottom" onClose={() => setShowBottomBanner(false)} />
-        </div>
-      )}
     </div>
   );
 }

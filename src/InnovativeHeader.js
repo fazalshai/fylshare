@@ -52,7 +52,11 @@ export default function InnovativeHeader() {
                             <Link key={item.name} to={item.path} className="relative">
                                 <motion.div
                                     className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
-                                        isActive ? "text-white" : "text-gray-400 hover:text-white hover:bg-white/10"
+                                        item.highlight
+                                            ? "bg-gradient-to-r from-fuchsia-600/30 to-cyan-600/30 text-fuchsia-300 border border-fuchsia-500/40 font-semibold"
+                                            : isActive
+                                            ? "text-white"
+                                            : "text-gray-400 hover:text-white hover:bg-white/10"
                                     }`}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}

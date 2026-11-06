@@ -38,9 +38,9 @@ export default function Admin() {
     if (authenticated) {
       fetchUploads();
       fetchWorkspaces();
-      // Load view count from localStorage
+      // Real tracked local visits (removed fake 24,700 vanity padding)
       const visits = parseInt(localStorage.getItem("fylshare_site_visits") || "0", 10);
-      setSiteViews(24700 + visits);
+      setSiteViews(visits);
     }
   }, [authenticated, fetchUploads, fetchWorkspaces]);
 
