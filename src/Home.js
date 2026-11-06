@@ -184,8 +184,8 @@ export default function Home() {
               <Search size={18} />
             </div>
             <div className="text-left">
-              <p className="text-sm font-bold text-white">Have a 6-Digit Retrieval Code?</p>
-              <p className="text-xs text-gray-400">Enter your code to view or download files in 1 click</p>
+              <p className="text-sm font-bold text-white">Have a 6-Digit Code?</p>
+              <p className="text-xs text-gray-400">Enter your code to unlock and download files instantly</p>
             </div>
           </div>
 
@@ -195,8 +195,8 @@ export default function Home() {
               maxLength={6}
               value={quickCode}
               onChange={(e) => setQuickCode(e.target.value.replace(/\D/g, ""))}
-              placeholder="Enter 6-digit code (e.g. 687179)"
-              className="w-full sm:w-56 px-4 py-2.5 rounded-xl bg-black/50 border border-white/15 text-white font-mono tracking-widest text-center text-sm focus:outline-none focus:border-cyan-400"
+              placeholder="Enter 6-digit code"
+              className="w-full sm:w-52 px-4 py-2.5 rounded-xl bg-black/50 border border-white/15 text-white font-mono tracking-widest text-center text-sm focus:outline-none focus:border-cyan-400"
             />
             <button
               type="submit"
@@ -293,13 +293,13 @@ export default function Home() {
             <div className="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-xs text-cyan-300">
                 <FolderPlus size={15} />
-                <span>Uploading lab files or project docs every day? Create a permanent PIN-locked Box for free!</span>
+                <span>Need a permanent shared space? Create a PIN-protected Workspace Box for free.</span>
               </div>
               <Link
                 to="/workspace"
                 className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold shrink-0 transition"
               >
-                Open Free Workspace Box →
+                Open Workspace Box →
               </Link>
             </div>
           </motion.div>
@@ -312,15 +312,24 @@ export default function Home() {
           >
             <div className="text-center space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-fuchsia-500/10 border border-fuchsia-500/30 text-fuchsia-300 text-xs font-semibold">
-                <Zap size={13} /> 100% Free • Up to 1GB • No Login or WhatsApp Web Needed
+                <Zap size={13} /> Instant • Encrypted • Up to 1GB Free
               </div>
               <h1 className="text-3xl sm:text-4xl font-bold text-white font-[Orbitron]">
-                Upload &amp; Share in 5 Seconds
+                Upload Your File
               </h1>
               <p className="text-gray-400 text-sm">
-                Drop lab manuals, code, CVs, or PDFs. Get an instant 6-digit code &amp; phone-scannable QR code.
+                Share anything across devices in seconds with a 6-digit code or QR scan. No account needed.
               </p>
             </div>
+
+            <input
+              type="text"
+              placeholder="Enter your name"
+              className="w-full p-3.5 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 transition text-white text-center backdrop-blur-sm"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              aria-label="Enter your name"
+            />
 
             {/* Dropzone */}
             <div
@@ -340,10 +349,10 @@ export default function Home() {
                   <UploadCloud size={32} />
                 </div>
                 <p className="text-base font-semibold text-white">
-                  Drag &amp; drop files here, or <span className="text-fuchsia-400 underline">browse device</span>
+                  Drag &amp; drop files here, or <span className="text-fuchsia-400 underline">click to browse</span>
                 </p>
                 <p className="text-xs text-gray-400">
-                  Any file type — Up to 1GB per transfer (100% Free, No Registration)
+                  Any file type — Max total 1GB
                 </p>
 
                 {files.length > 0 && (
@@ -366,23 +375,11 @@ export default function Home() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">Your Name / File Label (Optional)</label>
-              <input
-                type="text"
-                placeholder="e.g. CSE Lab, Abhishek, Sydney Drafting (optional)"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:border-fuchsia-500 transition text-white text-sm"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                aria-label="Enter your name"
-              />
-            </div>
-
             <button
               onClick={handleSubmit}
               className="w-full py-4 bg-gradient-to-r from-fuchsia-600 to-cyan-600 hover:from-fuchsia-500 hover:to-cyan-500 text-white rounded-xl transition font-bold text-base shadow-lg shadow-fuchsia-500/20"
             >
-              Upload &amp; Get 6-Digit Code →
+              Upload Now
             </button>
           </motion.div>
         )}
@@ -444,16 +441,16 @@ export default function Home() {
       <div className="max-w-7xl mx-auto mt-20 mb-12 space-y-16">
         <div className="text-center">
           <h2 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400 font-[Orbitron]">
-            Why Thousands Switch to Fylshare
+            Why Use Fylshare?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
               <div className="w-12 h-12 mx-auto bg-fuchsia-500/20 rounded-full flex items-center justify-center mb-4 text-fuchsia-300">
                 <Zap size={22} />
               </div>
-              <h3 className="text-xl font-bold mb-2">Zero Account Friction</h3>
+              <h3 className="text-xl font-bold mb-2">Lightning Fast</h3>
               <p className="text-gray-400 text-sm">
-                Move files between college lab PCs, print shops, and phones without logging into personal email or WhatsApp Web.
+                Upload files instantly without any registration. Just drag, drop, and share across any device.
               </p>
             </div>
             <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
@@ -462,16 +459,16 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-2">6-Digit Code &amp; Instant QR</h3>
               <p className="text-gray-400 text-sm">
-                Every upload generates a short 6-digit numerical code and scannable QR code for instant cross-device retrieval.
+                Retrieve your files anywhere using a simple 6-digit code or instant phone QR scan. No app required.
               </p>
             </div>
             <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
               <div className="w-12 h-12 mx-auto bg-purple-500/20 rounded-full flex items-center justify-center mb-4 text-purple-300">
                 <Lock size={22} />
               </div>
-              <h3 className="text-xl font-bold mb-2">AES-256 &amp; Ephemeral Storage</h3>
+              <h3 className="text-xl font-bold mb-2">AES-256 Encrypted</h3>
               <p className="text-gray-400 text-sm">
-                Encrypted in transit via TLS 1.3 and at rest via AES-256, with PIN-locked Workspace Boxes for ongoing projects.
+                Protected in transit via TLS 1.3 and encrypted at rest via AES-256 for complete privacy.
               </p>
             </div>
           </div>
@@ -516,21 +513,21 @@ export default function Home() {
             <span className="text-xs font-bold text-fuchsia-400 mb-2 block">SECURITY</span>
             <h3 className="text-lg font-bold text-white mb-2 group-hover:text-fuchsia-300 transition">How to Share Large Files Securely</h3>
             <p className="text-gray-400 text-sm line-clamp-3">
-              Learn why TLS 1.3 and AES-256 encryption are critical for protecting your digital assets and avoiding account compromises on shared PCs.
+              Learn why TLS 1.3 and AES-256 encryption are critical for protecting your digital assets and avoiding common security pitfalls.
             </p>
           </Link>
           <Link to="/blog" className="glass-panel p-6 rounded-xl border border-white/10 hover:bg-white/5 transition group">
             <span className="text-xs font-bold text-cyan-400 mb-2 block">PRIVACY</span>
-            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition">Why Anonymous File Transfer Beats Cloud Drives</h3>
+            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition">Why End-to-End Encryption Matters</h3>
             <p className="text-gray-400 text-sm line-clamp-3">
-              Understand why signing into Google Drive or WhatsApp Web on lab and print-shop computers puts your identity at risk.
+              Understand the technology behind AES-256 encryption and why anonymous file transfer is safer than account-based services.
             </p>
           </Link>
           <Link to="/blog" className="glass-panel p-6 rounded-xl border border-white/10 hover:bg-white/5 transition group">
-            <span className="text-xs font-bold text-green-400 mb-2 block">TEAMS &amp; LABS</span>
-            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-green-300 transition">Sharing Lab Manuals &amp; Project Files in Seconds</h3>
+            <span className="text-xs font-bold text-green-400 mb-2 block">GUIDE</span>
+            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-green-300 transition">The Benefits of Anonymous Sharing</h3>
             <p className="text-gray-400 text-sm line-clamp-3">
-              How students, professors, and studios share PDFs and project packages using 6-digit retrieval codes and PIN-protected Boxes.
+              Discover how reducing your metadata footprint protects your digital identity and improves workflow efficiency.
             </p>
           </Link>
         </div>

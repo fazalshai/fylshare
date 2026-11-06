@@ -119,7 +119,7 @@ export default function Search() {
           <input
             type="text"
             maxLength={6}
-            placeholder="Enter 6-digit code (e.g. 687179)"
+            placeholder="Enter 6-digit code"
             className="w-full py-3 px-2 bg-transparent focus:outline-none text-xl font-mono tracking-widest text-white placeholder-gray-500"
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
@@ -200,7 +200,7 @@ export default function Search() {
 
               {/* Viral Re-Share Bar */}
               <div className="mt-6 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
-                <span>Share this file package with classmates or teammates:</span>
+                <span>Need to forward this package?</span>
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(
                     `Download "${result.files?.map((f) => f.name).join(", ")}" on Fylshare using code ${code}: ${window.location.origin}/search?code=${code}`
@@ -218,11 +218,11 @@ export default function Search() {
             <div className="p-6 rounded-2xl border border-fuchsia-500/30 bg-gradient-to-r from-fuchsia-950/40 via-[#120b1e] to-cyan-950/40 flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-fuchsia-400">
-                  <Sparkles size={13} /> 100% FREE WORKSPACE BOX
+                  <Sparkles size={13} /> WORKSPACE BOX
                 </div>
-                <h3 className="text-lg font-bold text-white">Want Your Own Permanent PIN-Locked Folder?</h3>
+                <h3 className="text-lg font-bold text-white">Need a Permanent PIN-Protected Cloud Box?</h3>
                 <p className="text-xs text-gray-300 max-w-xl">
-                  Keep all your lab manuals, code files, CVs, and project PDFs in one personal Box and open it from any computer in 2 seconds.
+                  Store and organize multiple files in a private Workspace Box and access them from any device worldwide.
                 </p>
               </div>
               <div className="flex gap-2 shrink-0">
@@ -230,13 +230,13 @@ export default function Search() {
                   to="/"
                   className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition"
                 >
-                  Upload a File
+                  Upload Files
                 </Link>
                 <Link
                   to="/workspace"
                   className="px-5 py-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-cyan-600 hover:from-fuchsia-500 hover:to-cyan-500 text-white font-bold text-xs transition shadow-lg"
                 >
-                  Create Free Box →
+                  Create Workspace Box →
                 </Link>
               </div>
             </div>
@@ -248,13 +248,13 @@ export default function Search() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-sm text-gray-300">
-                Upload any PDF, lab manual, code zip, or video up to 1GB for free and get a 6-digit code &amp; QR in 5 seconds.
+                Upload any file up to 1GB with zero registration and get an instant 6-digit code &amp; QR.
               </p>
               <Link
                 to="/"
                 className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold shrink-0 transition"
               >
-                Upload Free →
+                Upload Now →
               </Link>
             </div>
           </div>
