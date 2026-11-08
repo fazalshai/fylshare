@@ -18,26 +18,6 @@ export default function Search() {
     setTimeout(() => setToast(null), 3500);
   }, []);
 
-  // Load Monetag zones (Zone 9526371 Epic MultiTag + Zone 9526375 Push Service Worker)
-  // ONLY on the Retrieval/Download screen so Uploaders on "/" are never interrupted!
-  useEffect(() => {
-    // 1. Register Monetag Push Service Worker (/sw.js -> zone 9526375)
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
-    }
-
-    // 2. Inject Monetag Epic Tag (zone 9526371) on retrieval page
-    const scriptId = "monetag-retrieval-zone";
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement("script");
-      script.id = scriptId;
-      script.async = true;
-      script.setAttribute("data-cfasync", "false");
-      script.src = "https://p.monetag.com/tag.min.js?z=9526371";
-      document.body.appendChild(script);
-    }
-  }, []);
-
   const fetchByCode = useCallback(
     async (targetCode) => {
       const cleaned = (targetCode || "").trim();
