@@ -85,7 +85,9 @@ export default function Home() {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
     setLoading(true);
-    setProgress(45);
+    setProgress(1);
+
+    let finalizeInterval = null;
 
     try {
       const formData = new FormData();
@@ -94,15 +96,51 @@ export default function Home() {
       formData.append("size", totalSize);
       files.forEach((file) => formData.append("files", file));
 
-      const res = await fetch(`${config.API_BASE_URL}/api/uploads`, {
-        method: "POST",
-        body: formData,
+      const responseData = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${config.API_BASE_URL}/api/uploads`, true);
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            // Map network byte transfer to 1% - 88%, then tick 89% - 99% while cloud storage finalizes
+            const networkPct = Math.max(1, Math.min(88, Math.round((event.loaded / event.total) * 88)));
+            setProgress(networkPct);
+
+            if (event.loaded >= event.total && !finalizeInterval) {
+              finalizeInterval = setInterval(() => {
+                setProgress((prev) => (prev < 99 ? prev + 1 : 99));
+              }, 250);
+            }
+          }
+        };
+
+        xhr.onload = () => {
+          if (finalizeInterval) clearInterval(finalizeInterval);
+          try {
+            const parsed = JSON.parse(xhr.responseText || "{}");
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(parsed);
+            } else {
+              reject(parsed);
+            }
+          } catch (err) {
+            reject(err);
+          }
+        };
+
+        xhr.onerror = () => {
+          if (finalizeInterval) clearInterval(finalizeInterval);
+          reject(new Error("Network error"));
+        };
+
+        xhr.send(formData);
       });
 
-      const result = await res.json();
-
-      if (res.ok) {
+      if (responseData) {
         setProgress(100);
+        // Pause briefly at 100% so the user clearly sees "100% Uploaded Successfully!"
+        await new Promise((r) => setTimeout(r, 650));
+
         const shareUrl = `${window.location.origin}/search?code=${code}`;
         const ticket = {
           code,
@@ -119,13 +157,11 @@ export default function Home() {
 
         setFiles([]);
         setName("");
-      } else {
-        console.error(result);
-        triggerToast("❌ Upload failed. Please try again.", "error");
       }
     } catch (error) {
+      if (finalizeInterval) clearInterval(finalizeInterval);
       console.error("❌ Upload error:", error);
-      triggerToast("❌ Network error while uploading", "error");
+      triggerToast("❌ Upload failed. Please try again.", "error");
     } finally {
       setLoading(false);
       setProgress(0);
@@ -138,20 +174,53 @@ export default function Home() {
       <AnimatePresence>
         {loading && (
           <motion.div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center"
+            className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="text-center max-w-xs px-4"
-              initial={{ scale: 0.8 }}
+              className="text-center w-full max-w-sm px-6 py-8 rounded-3xl bg-[#11131a] border border-white/15 shadow-2xl"
+              initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
+              exit={{ scale: 0.9 }}
             >
-              <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-fuchsia-500 border-opacity-80 mx-auto"></div>
-              <p className="mt-4 text-lg font-semibold text-white">
-                {progress < 100 ? `🚀 Uploading... ${progress}%` : "✅ Transfer Ready!"}
+              <div className="relative w-24 h-24 mx-auto mb-5 flex items-center justify-center">
+                <div
+                  className={`absolute inset-0 rounded-full border-4 ${
+                    progress === 100
+                      ? "border-emerald-500"
+                      : "border-t-fuchsia-500 border-r-cyan-500 border-b-white/10 border-l-white/10 animate-spin"
+                  }`}
+                ></div>
+                <span className="text-xl font-extrabold font-[Orbitron] text-white">
+                  {progress}%
+                </span>
+              </div>
+
+              {/* Smooth Progress Bar */}
+              <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden mb-3">
+                <div
+                  className={`h-full transition-all duration-200 rounded-full ${
+                    progress === 100
+                      ? "bg-emerald-400"
+                      : "bg-gradient-to-r from-fuchsia-500 to-cyan-400"
+                  }`}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              <p className="text-base font-bold text-white">
+                {progress < 100
+                  ? `${progress}% Done — Uploading...`
+                  : "✅ 100% Uploaded Successfully!"}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {progress < 88
+                  ? "Sending encrypted bytes..."
+                  : progress < 100
+                  ? "Finalizing your 6-digit code..."
+                  : "Generating transfer ticket..."}
               </p>
             </motion.div>
           </motion.div>

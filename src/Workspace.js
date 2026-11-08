@@ -73,7 +73,9 @@ export default function Workspace() {
     const handleUpload = async () => {
         if (uploadFiles.length === 0) return;
         setLoading(true);
-        setProgress(50); // Fake progress for fetch
+        setProgress(1);
+
+        let finalizeInterval = null;
 
         try {
             const formData = new FormData();
@@ -81,21 +83,48 @@ export default function Workspace() {
             formData.append("pin", pin);
             uploadFiles.forEach((file) => formData.append("files", file));
 
-            const res = await fetch(`${config.API_BASE_URL}/api/workspaces/upload`, {
-                method: "POST",
-                body: formData, // Browser sets Content-Type: multipart/form-data
+            await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", `${config.API_BASE_URL}/api/workspaces/upload`, true);
+
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const networkPct = Math.max(1, Math.min(88, Math.round((event.loaded / event.total) * 88)));
+                        setProgress(networkPct);
+
+                        if (event.loaded >= event.total && !finalizeInterval) {
+                            finalizeInterval = setInterval(() => {
+                                setProgress((prev) => (prev < 99 ? prev + 1 : 99));
+                            }, 250);
+                        }
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (finalizeInterval) clearInterval(finalizeInterval);
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve();
+                    } else {
+                        reject(new Error("Upload failed"));
+                    }
+                };
+
+                xhr.onerror = () => {
+                    if (finalizeInterval) clearInterval(finalizeInterval);
+                    reject(new Error("Network error"));
+                };
+
+                xhr.send(formData);
             });
 
-            if (res.ok) {
-                setProgress(100);
-                triggerToast("Files uploaded successfully", "success");
-                setUploadFiles([]);
-                refreshFiles();
-            } else {
-                triggerToast("Failed to save file metadata", "error");
-            }
+            setProgress(100);
+            await new Promise((r) => setTimeout(r, 600));
+            triggerToast("100% Uploaded successfully!", "success");
+            setUploadFiles([]);
+            refreshFiles();
 
         } catch (err) {
+            if (finalizeInterval) clearInterval(finalizeInterval);
             console.error(err);
             triggerToast("Upload failed", "error");
         } finally {
@@ -155,12 +184,26 @@ export default function Workspace() {
                         {uploadFiles.length > 0 && (
                             <div className="mt-4">
                                 <p className="text-green-400 text-xs font-mono mb-2">{uploadFiles.length} files selected</p>
+                                {loading && (
+                                    <div className="w-full h-2.5 bg-white/10 rounded-full overflow-hidden mb-2">
+                                        <div
+                                            className={`h-full transition-all duration-200 rounded-full ${
+                                                progress === 100 ? "bg-emerald-400" : "bg-gradient-to-r from-fuchsia-500 to-cyan-400"
+                                            }`}
+                                            style={{ width: `${progress}%` }}
+                                        />
+                                    </div>
+                                )}
                                 <button
                                     onClick={handleUpload}
                                     disabled={loading}
                                     className="w-full bg-fuchsia-600 hover:bg-fuchsia-700 text-white p-2 rounded-lg font-bold transition shadow-lg"
                                 >
-                                    {loading ? `Uploading... ${progress}%` : "Start Upload"}
+                                    {loading
+                                        ? progress < 100
+                                            ? `${progress}% Done — Uploading...`
+                                            : "✅ 100% Uploaded Successfully!"
+                                        : "Start Upload"}
                                 </button>
                             </div>
                         )}
