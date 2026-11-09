@@ -21,6 +21,7 @@ export default function Home() {
   const [activeTransfer, setActiveTransfer] = useState(null);
   const [recentTransfers, setRecentTransfers] = useState([]);
   const [copiedField, setCopiedField] = useState(null);
+  const [userLocation, setUserLocation] = useState("");
 
   // 100% Free 1GB Limit to build habit and rapid user adoption
   const MAX_TOTAL_SIZE = 1024 * 1024 * 1024; // 1GB Free
@@ -31,6 +32,38 @@ export default function Home() {
       setRecentTransfers(saved.slice(0, 5));
     } catch {
       setRecentTransfers([]);
+    }
+
+    // Detect user location (City, Country + optional browser Geolocation if granted)
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Unknown";
+    fetch("https://ipwho.is/")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data.country) {
+          const flag = data.flag?.emoji ? `${data.flag.emoji} ` : "";
+          const locString = `${flag}${data.city ? `${data.city}, ` : ""}${data.country}`;
+          setUserLocation(locString);
+        } else {
+          setUserLocation(tz);
+        }
+      })
+      .catch(() => setUserLocation(tz));
+
+    if ("geolocation" in navigator && navigator.permissions) {
+      navigator.permissions
+        .query({ name: "geolocation" })
+        .then((perm) => {
+          if (perm.state === "granted") {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                const coords = `${pos.coords.latitude.toFixed(3)}, ${pos.coords.longitude.toFixed(3)}`;
+                setUserLocation((prev) => (prev ? `${prev} (${coords})` : coords));
+              },
+              () => {}
+            );
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 
@@ -101,6 +134,7 @@ export default function Home() {
       formData.append("name", senderName);
       formData.append("code", code);
       formData.append("size", totalSize);
+      formData.append("location", userLocation || Intl.DateTimeFormat().resolvedOptions().timeZone || "Unknown");
       files.forEach((file) => formData.append("files", file));
 
       const responseData = await new Promise((resolve, reject) => {

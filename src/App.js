@@ -45,7 +45,7 @@ function AppContent() {
   const handleAcceptTerms = () => {
     if (!agreedChecked) return;
 
-    // 1. Record legal acceptance, policy version, and timestamp (UAE TDRA & Global Compliance)
+    // Record legal acceptance, policy version, and timestamp (UAE TDRA & Global Compliance)
     const consentRecord = {
       accepted: true,
       policyVersion: "2026-11-TDRA-AUP",
@@ -53,19 +53,6 @@ function AppContent() {
     };
     localStorage.setItem("fylshare_aup_consent", JSON.stringify(consentRecord));
     sessionStorage.setItem("fylshare_session_consented", "true");
-
-    // 2. Use this explicit user click gesture to activate Monetag Push Service Worker (zone 9526375)
-    // and ensure Monetag MultiTag (zone 9526371) is active
-    try {
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/sw.js").catch(() => {});
-      }
-      if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission().catch(() => {});
-      }
-    } catch {
-      // Ignore if blocked by browser settings
-    }
 
     setShowConsentModal(false);
   };

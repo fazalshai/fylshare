@@ -252,6 +252,7 @@ export default function Admin() {
                     {role === "main" && <th className="px-4 py-3">Code</th>}
                     <th className="px-4 py-3">File Name(s)</th>
                     <th className="px-4 py-3">Uploaded By</th>
+                    <th className="px-4 py-3">Location</th>
                     <th className="px-4 py-3">Date & Time</th>
                   </>
                 ) : (
@@ -276,6 +277,7 @@ export default function Admin() {
                         {role === "main" && <td className="px-4 py-3 text-xs text-gray-400">{item.code}</td>}
                         <td className="px-4 py-3 font-medium text-white">{item.files.map(f => f.name).join(", ")}</td>
                         <td className="px-4 py-3">{item.name || "Anonymous"}</td>
+                        <td className="px-4 py-3 text-xs text-cyan-400">{item.location || "—"}</td>
                         <td className="px-4 py-3 text-sm text-gray-400">{new Date(item.date).toLocaleString()}</td>
                       </>
                     ) : (
