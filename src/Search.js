@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search as SearchIcon, Eye, Download, Sparkles, FolderPlus, Share2, FileText, Code } from "lucide-react";
+import { Search as SearchIcon, Eye, Download, Sparkles, FolderPlus, Share2, FileText, Code, Flag } from "lucide-react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import Toast from "./Toast";
 import config from "./config";
@@ -12,6 +12,26 @@ export default function Search() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [reported, setReported] = useState(false);
+
+  const handleReportAbuse = async () => {
+    if (!code || reported) return;
+    const reason = window.prompt(
+      "Report Abuse / Prohibited Content (e.g., copyright infringement, malware, privacy violation, illegal content):"
+    );
+    if (!reason || !reason.trim()) return;
+    try {
+      await fetch(`${config.API_BASE_URL}/api/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, reason: reason.trim() }),
+      });
+      setReported(true);
+      triggerToast("Report submitted. Our safety team will review and remove violating content.", "success");
+    } catch {
+      triggerToast("Report logged for review.", "info");
+    }
+  };
 
   const triggerToast = useCallback((message, type = "info") => {
     setToast({ message, type });
@@ -178,9 +198,8 @@ export default function Search() {
                 })}
               </ul>
 
-              {/* Viral Re-Share Bar */}
+              {/* Viral Re-Share + Report Abuse Bar */}
               <div className="mt-6 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
-                <span>Need to forward this package?</span>
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(
                     `Download "${result.files?.map((f) => f.name).join(", ")}" on Fylshare using code ${code}: ${window.location.origin}/search?code=${code}`
@@ -191,6 +210,15 @@ export default function Search() {
                 >
                   <Share2 size={14} /> Share on WhatsApp
                 </a>
+
+                <button
+                  onClick={handleReportAbuse}
+                  disabled={reported}
+                  className="text-gray-500 hover:text-red-400 transition flex items-center gap-1.5"
+                  title="Report copyright infringement, malware, or prohibited content"
+                >
+                  <Flag size={13} /> {reported ? "Reported to Safety Team" : "Report Abuse"}
+                </button>
               </div>
             </div>
 

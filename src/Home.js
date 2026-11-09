@@ -39,7 +39,14 @@ export default function Home() {
     setTimeout(() => setToast(null), duration);
   };
 
+  const BLOCKED_EXTENSIONS = /\.(exe|bat|cmd|scr|vbs|pif|com|msi)$/i;
+
   const onDrop = (acceptedFiles) => {
+    const dangerousFile = acceptedFiles.find((f) => BLOCKED_EXTENSIONS.test(f.name || ""));
+    if (dangerousFile) {
+      triggerToast(`❌ Security Policy: Raw executable files (${dangerousFile.name}) are not permitted.`, "error");
+      return;
+    }
     const totalSize = acceptedFiles.reduce((sum, file) => sum + file.size, 0);
     if (totalSize > MAX_TOTAL_SIZE) {
       triggerToast("❌ Total upload limit is 1GB per session", "error");
@@ -450,6 +457,18 @@ export default function Home() {
             >
               Upload Now
             </button>
+
+            <p className="text-[11px] text-gray-500 text-center leading-relaxed">
+              By uploading, you confirm you have the right to share these files and agree to our{" "}
+              <Link to="/terms" className="text-gray-400 underline hover:text-white">
+                Terms &amp; Acceptable Use Policy
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" className="text-gray-400 underline hover:text-white">
+                Privacy Policy
+              </Link>
+              . Files auto-expire to protect your privacy.
+            </p>
           </motion.div>
         )}
 
@@ -553,13 +572,13 @@ export default function Home() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {["PDF", "DOCX", "JPG", "PNG", "MP4", "ZIP", "HTML/CSS/JS", "PY", "IPYNB", "CAD/DWG", "PSD", "APK"].map((fmt) => (
+            {["PDF", "DOCX", "PPTX", "JPG", "PNG", "MP4", "ZIP", "HTML/CSS/JS", "PY", "IPYNB", "CAD/DWG", "PSD", "CSV"].map((fmt) => (
               <span key={fmt} className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-300 border border-white/10">
                 {fmt}
               </span>
             ))}
             <span className="px-3 py-1 bg-white/5 rounded-full text-xs italic text-gray-500 border border-white/5">
-              + any file format up to 1GB
+              + standard document &amp; media formats up to 1GB
             </span>
           </div>
         </div>

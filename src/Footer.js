@@ -33,7 +33,8 @@ export default function Footer() {
                     <Link to="/technology" className="hover:text-white transition">Technology</Link>
                     <Link to="/faq" className="hover:text-white transition">FAQ</Link>
                     <Link to="/privacy" className="hover:text-white transition">Privacy Policy</Link>
-                    <Link to="/terms" className="hover:text-white transition">Terms of Service</Link>
+                    <Link to="/terms" className="hover:text-white transition">Terms &amp; Acceptable Use</Link>
+                    <a href="mailto:fylshare.official@gmail.com?subject=Report%20Abuse%20%2F%20Takedown%20Request" className="text-red-400/80 hover:text-red-300 transition">Report Abuse</a>
                 </nav>
             </div>
         </footer>

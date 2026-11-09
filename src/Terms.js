@@ -22,20 +22,24 @@ export default function TermsOfService() {
                 </section>
 
                 <section>
-                    <h2 className="text-xl font-bold text-cyan-400 mb-4">3. Prohibited Activities</h2>
-                    <p className="mb-4">You may not access or use the Site for any purpose other than that for which we make the Site available. The Site may not be used in connection with any commercial endeavors except those that are specifically endorsed or approved by us. Specifically, you agree not to:</p>
+                    <h2 className="text-xl font-bold text-cyan-400 mb-4">3. Acceptable Use Policy (AUP) &amp; Prohibited Content</h2>
+                    <p className="mb-4">You may only upload files that you own or have the lawful right to share. In compliance with international regulations (including UAE TDRA Internet Guidelines, EU DSA, and US DMCA), you strictly agree NOT to upload, store, or distribute:</p>
                     <ul className="list-disc pl-5 space-y-2">
-                        <li>Upload or transmit viruses, Trojan horses, or other harmful material.</li>
-                        <li>Upload any content that violates intellectual property rights or copyright laws.</li>
-                        <li>Use the Site to distribute illegal content, including child sexual abuse material (CSAM) or content promoting terrorism.</li>
-                        <li>Attempt to bypass any measures of the Site designed to prevent or restrict access to the Site, or any portion of the Site.</li>
+                        <li>Malware, ransomware, spyware, raw executable payloads (<code>.exe</code>, <code>.bat</code>, <code>.scr</code>, <code>.cmd</code>, <code>.vbs</code>, <code>.msi</code>), or harmful code.</li>
+                        <li>Pirated software, movies, music, or any material that infringes third-party copyright or intellectual property rights.</li>
+                        <li>Adult, pornographic, or sexually explicit content of any kind.</li>
+                        <li>Private personal documents, photographs, or confidential data belonging to others without their explicit consent.</li>
+                        <li>Content promoting fraud, phishing, terrorism, violence, or any activity prohibited by applicable local or international law.</li>
                     </ul>
                 </section>
 
                 <section>
-                    <h2 className="text-xl font-bold text-cyan-400 mb-4">4. Digital Millennium Copyright Act (DMCA) Notice</h2>
+                    <h2 className="text-xl font-bold text-cyan-400 mb-4">4. Automatic File Expiration &amp; Takedown Policy</h2>
+                    <p className="leading-relaxed mb-3">
+                        Anonymous transfers on Fylshare are ephemeral by design and are automatically purged from our servers and cloud storage after their retention window expires. We reserve the right to immediately remove or quarantine any transfer code reported for abuse or policy violations without prior notice.
+                    </p>
                     <p className="leading-relaxed">
-                        We respect the intellectual property rights of others. If you believe that any material available on or through the Site infringes upon any copyright you own or control, please immediately notify our Designated Copyright Agent at <a href="mailto:fylshare.official@gmail.com" className="text-fuchsia-400 hover:underline">fylshare.official@gmail.com</a>. We will respond efficiently to all takedown requests.
+                        <strong>Report Abuse / Copyright Infringement:</strong> Anyone can report a 6-digit transfer code directly via the <strong>Report Abuse</strong> button on the file retrieval page or by emailing <a href="mailto:fylshare.official@gmail.com?subject=Abuse%20Report%20-%20Fylshare" className="text-fuchsia-400 hover:underline">fylshare.official@gmail.com</a> with the 6-digit code. Verified reports are processed and removed promptly.
                     </p>
                 </section>
 
