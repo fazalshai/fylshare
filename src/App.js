@@ -25,15 +25,103 @@ import Blog from "./Blog";
 import Technology from "./Technology";
 import Footer from "./Footer";
 
+const ROUTE_SEO = {
+  "/": {
+    title: "Fylshare | Free Secure Anonymous File Sharing — No Account Needed",
+    description:
+      "Fylshare is a free, secure, and anonymous file sharing platform. Upload files up to 1GB with AES-256 encryption, no registration required. Share anything instantly with a unique 6-digit code.",
+  },
+  "/search": {
+    title: "Retrieve Files by 6-Digit Code | Fylshare Instant Download",
+    description:
+      "Enter your 6-digit Fylshare retrieval code to preview and download shared files instantly on any device. No login or account required.",
+  },
+  "/workspace": {
+    title: "Workspace Box — Permanent PIN-Protected Shared Folders | Fylshare",
+    description:
+      "Create a free PIN-protected cloud Workspace Box on Fylshare to store, organize, and share project files across devices.",
+  },
+  "/blog": {
+    title: "Fylshare Blog — File Sharing Guides, Privacy & Security Insights",
+    description:
+      "Read expert tutorials, comparisons, and cybersecurity guides on encrypted file transfer, sending large videos without quality loss, and data privacy.",
+  },
+  "/about": {
+    title: "About Fylshare — Our Mission for Frictionless Private File Sharing",
+    description:
+      "Learn how Fylshare builds fast, anonymous, and encrypted file transfer tools designed for privacy and zero-account convenience.",
+  },
+  "/contact": {
+    title: "Contact Fylshare — Support, Feedback & Inquiries",
+    description:
+      "Get in touch with the Fylshare team for technical support, partnership inquiries, or security reporting.",
+  },
+  "/faq": {
+    title: "Frequently Asked Questions (FAQ) | Fylshare Help Center",
+    description:
+      "Answers to common questions about Fylshare's 6-digit retrieval codes, 1GB free file limit, AES-256 encryption, Workspace Boxes, and file expiry.",
+  },
+  "/security": {
+    title: "Security Architecture & Encryption Guide | Fylshare",
+    description:
+      "Explore how Fylshare protects your files using TLS 1.3 transport security, AES-256 cloud encryption, executable screening, and automatic expiry.",
+  },
+  "/technology": {
+    title: "Technology Stack & Cloud Infrastructure | Fylshare",
+    description:
+      "Discover the modern web and cloud storage architecture powering Fylshare's high-speed 6-digit code and QR file transfers.",
+  },
+  "/privacy": {
+    title: "Privacy Policy — Zero Identity Data Minimization | Fylshare",
+    description:
+      "Read Fylshare's Privacy Policy detailing our commitment to anonymous file transfers, minimal data retention, and GDPR/PDPL alignment.",
+  },
+  "/terms": {
+    title: "Terms of Service & Acceptable Use Policy | Fylshare",
+    description:
+      "Review Fylshare's Terms of Service, Acceptable Use Policy (AUP), copyright compliance, and abuse takedown procedures.",
+  },
+};
+
 function AppContent() {
   const location = useLocation();
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [agreedChecked, setAgreedChecked] = useState(true);
 
   useEffect(() => {
-    // Show the Terms & Acceptable Use dialogue once per browser session
-    // (Skip on /terms and /privacy so users can read the policies freely)
-    if (location.pathname === "/terms" || location.pathname === "/privacy") {
+    // 1. Dynamically set user-selected canonical URL, unique <title>, and <meta name="description"> per route
+    const cleanPath = location.pathname === "/" ? "/" : location.pathname.replace(/\/+$/, "");
+    const canonicalUrl = `https://fylshare.com${cleanPath}`;
+
+    let canonicalTag = document.querySelector("link[rel='canonical']");
+    if (!canonicalTag) {
+      canonicalTag = document.createElement("link");
+      canonicalTag.setAttribute("rel", "canonical");
+      document.head.appendChild(canonicalTag);
+    }
+    canonicalTag.setAttribute("href", canonicalUrl);
+
+    const ogUrlTag = document.querySelector("meta[property='og:url']");
+    if (ogUrlTag) ogUrlTag.setAttribute("content", canonicalUrl);
+
+    const seo = ROUTE_SEO[cleanPath] || ROUTE_SEO["/"];
+    document.title = seo.title;
+
+    const descTag = document.querySelector("meta[name='description']");
+    if (descTag) descTag.setAttribute("content", seo.description);
+
+    const ogTitleTag = document.querySelector("meta[property='og:title']");
+    if (ogTitleTag) ogTitleTag.setAttribute("content", seo.title);
+
+    const ogDescTag = document.querySelector("meta[property='og:description']");
+    if (ogDescTag) ogDescTag.setAttribute("content", seo.description);
+
+    // 2. Show the Terms & Acceptable Use dialogue once per browser session for human users
+    // Never block search engine crawlers (Googlebot, Bingbot, etc.) or /terms & /privacy pages
+    const isBot = /bot|googlebot|crawler|spider|robot|crawling|mediapartners/i.test(
+      navigator.userAgent || ""
+    );
+    if (isBot || cleanPath === "/terms" || cleanPath === "/privacy") {
       return;
     }
     const sessionAccepted = sessionStorage.getItem("fylshare_session_consented");
