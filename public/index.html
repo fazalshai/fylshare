@@ -36,9 +36,14 @@
   <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2166710488015718"
     crossorigin="anonymous"></script>
-
-  <!-- Monetag MultiTag (Epic tag · zone 9526371: OnClick, In-Page Push, Vignette, Interstitial, Push) -->
-  <script src="https://al5sm.com/tag.min.js" data-zone="9526371" async data-cfasync="false"></script>
+  <script>
+    // Unregister any active Monetag service worker so no background ads fire while disabled
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        regs.forEach(function (reg) { reg.unregister(); });
+      });
+    }
+  </script>
 
   <!-- Website Schema.org Structured Data -->
   <script type="application/ld+json">
