@@ -1,133 +1,113 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Home, Search, Box, Info, Menu, X, Mail, BookOpen } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 export default function InnovativeHeader() {
-    const location = useLocation();
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // Close menu on route change
-    useEffect(() => {
-        setIsMobileMenuOpen(false);
-    }, [location.pathname]);
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
-    // Prevent body scroll when menu is open
-    useEffect(() => {
-        document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
-        return () => { document.body.style.overflow = ""; };
-    }, [isMobileMenuOpen]);
+  useEffect(() => {
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
 
-    const navItems = [
-        { name: "Upload",  path: "/",          icon: <Home     size={20} /> },
-        { name: "Search",  path: "/search",    icon: <Search   size={20} /> },
-        { name: "My Box",  path: "/workspace", icon: <Box      size={20} /> },
-        { name: "Blog",    path: "/blog",      icon: <BookOpen size={20} /> },
-        { name: "About",   path: "/about",     icon: <Info     size={20} /> },
-        { name: "Contact", path: "/contact",   icon: <Mail     size={20} /> },
-    ];
+  const navItems = [
+    { name: "Transfer", path: "/" },
+    { name: "Receive", path: "/search" },
+    { name: "Workspace", path: "/workspace" },
+    { name: "Security", path: "/security" },
+    { name: "FAQ", path: "/faq" },
+    { name: "Support", path: "/contact" },
+  ];
 
-    return (
-        <>
-            {/* ── Desktop Floating Pill (lg and above: 1024px+) ── */}
-            <motion.header
-                initial={{ y: -100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                className="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden lg:flex items-center gap-1 px-3 py-2 rounded-full border border-white/10 bg-black/30 backdrop-blur-md shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]"
-            >
-                {/* Logo */}
-                <Link to="/" className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-white/5 transition-colors group mr-1">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-fuchsia-500 to-cyan-500 flex items-center justify-center shadow-lg group-hover:shadow-fuchsia-500/50 transition-shadow duration-300">
-                        <span className="text-white font-bold text-sm font-[Orbitron]">F</span>
-                    </div>
-                    <span className="text-white font-bold font-[Poppins] tracking-wide text-sm">Fylshare</span>
-                </Link>
+  return (
+    <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-[#D2D2D7]/70">
+      <div className="max-w-[1160px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        {/* Brand */}
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 text-[#1D1D1F] hover:opacity-80 transition-opacity rounded-md"
+          aria-label="Fylshare Home"
+        >
+          <span className="w-7 h-7 rounded-lg bg-[#1D1D1F] text-white flex items-center justify-center text-xs font-semibold tracking-tight">
+            F
+          </span>
+          <span className="text-[17px] font-semibold tracking-tight text-[#1D1D1F]">
+            Fylshare
+          </span>
+        </Link>
 
-                {/* Nav Items */}
-                <nav className="flex items-center gap-0.5">
-                    {navItems.map((item) => {
-                        const isActive = location.pathname === item.path;
-                        return (
-                            <Link key={item.name} to={item.path} className="relative">
-                                <motion.div
-                                    className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
-                                        item.highlight
-                                            ? "bg-gradient-to-r from-fuchsia-600/30 to-cyan-600/30 text-fuchsia-300 border border-fuchsia-500/40 font-semibold"
-                                            : isActive
-                                            ? "text-white"
-                                            : "text-gray-400 hover:text-white hover:bg-white/10"
-                                    }`}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    {React.cloneElement(item.icon, { size: 14 })}
-                                    <span className="text-xs font-medium whitespace-nowrap">{item.name}</span>
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="activeTab"
-                                            className="absolute inset-0 bg-white/10 rounded-full border border-white/5"
-                                            initial={false}
-                                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                                        />
-                                    )}
-                                </motion.div>
-                            </Link>
-                        );
-                    })}
-                </nav>
-            </motion.header>
+        {/* Desktop Navigation */}
+        <nav aria-label="Main navigation" className="hidden md:flex items-center gap-1">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-colors ${
+                  isActive
+                    ? "bg-[#F5F5F7] text-[#1D1D1F] font-semibold"
+                    : "text-[#6E6E73] hover:text-[#1D1D1F]"
+                }`}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
 
-            {/* ── Mobile / Tablet Top Bar (below lg: phones + tablets) ── */}
-            <div className="lg:hidden fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 py-3 bg-black/30 backdrop-blur-lg border-b border-white/10">
-                <Link to="/" className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-fuchsia-500 to-cyan-500 flex items-center justify-center shadow">
-                        <span className="text-white font-bold text-sm font-[Orbitron]">F</span>
-                    </div>
-                    <span className="text-white font-bold font-[Poppins] text-base">Fylshare</span>
-                </Link>
-                <button
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="text-white p-2 rounded-full hover:bg-white/10 transition-colors"
-                    aria-label="Toggle menu"
+        {/* Quick Receive Action on Desktop */}
+        <div className="hidden md:flex items-center gap-3">
+          <Link
+            to="/search"
+            className="text-[13px] font-medium text-[#0066CC] hover:text-[#0055B3] transition-colors px-3 py-1.5 rounded-full bg-[#0066CC]/[0.08]"
+          >
+            Enter 6-Digit Code
+          </Link>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          type="button"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden p-2 rounded-lg text-[#1D1D1F] hover:bg-[#F5F5F7] transition-colors"
+          aria-expanded={isMobileMenuOpen}
+          aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+        >
+          {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
+
+      {/* Mobile Navigation Drawer */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-b border-[#D2D2D7] bg-white px-4 pt-2 pb-6">
+          <nav aria-label="Mobile navigation" className="flex flex-col space-y-1">
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`px-3 py-2.5 rounded-xl text-[15px] font-medium ${
+                    isActive
+                      ? "bg-[#F5F5F7] text-[#1D1D1F] font-semibold"
+                      : "text-[#6E6E73] hover:text-[#1D1D1F]"
+                  }`}
                 >
-                    {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-                </button>
-            </div>
-
-            {/* ── Mobile / Tablet Full-Screen Menu Overlay ── */}
-            <AnimatePresence>
-                {isMobileMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -16 }}
-                        transition={{ duration: 0.2 }}
-                        className="lg:hidden fixed inset-0 z-40 bg-black/95 backdrop-blur-sm flex flex-col pt-20 pb-8 px-6 overflow-y-auto"
-                    >
-                        <nav className="flex flex-col gap-3 mt-4">
-                            {navItems.map((item) => {
-                                const isActive = location.pathname === item.path;
-                                return (
-                                    <Link
-                                        key={item.name}
-                                        to={item.path}
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className={`flex items-center gap-4 px-5 py-4 rounded-2xl text-base font-semibold transition-all ${
-                                            isActive
-                                                ? "bg-fuchsia-600/20 text-fuchsia-400 border border-fuchsia-600/40"
-                                                : "text-gray-300 border border-white/8 hover:bg-white/5 hover:text-white"
-                                        }`}
-                                    >
-                                        {item.icon}
-                                        {item.name}
-                                    </Link>
-                                );
-                            })}
-                        </nav>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </>
-    );
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      )}
+    </header>
+  );
 }

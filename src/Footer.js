@@ -1,42 +1,119 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-export default function Footer() {
-    const year = new Date().getFullYear();
+export default function Footer({ onOpenCookieSettings }) {
+  const year = new Date().getFullYear();
 
-    return (
-        <footer className="mt-20 border-t border-white/10 bg-black/40 backdrop-blur-sm py-10 font-[Poppins]">
-            <div className="max-w-7xl mx-auto px-4">
-                {/* Top: Logo + Email */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-fuchsia-500 to-cyan-500 flex items-center justify-center">
-                            <span className="text-white font-bold text-sm font-[Orbitron]">F</span>
-                        </div>
-                        <div>
-                            <span className="text-gray-300 font-bold tracking-wide block">Fylshare &copy; {year}</span>
-                            <a href="mailto:fylshare.official@gmail.com" className="text-fuchsia-400 text-xs hover:text-fuchsia-300 transition">fylshare.official@gmail.com</a>
-                        </div>
-                    </div>
-                    <p className="text-gray-500 text-sm max-w-xs text-center md:text-right">
-                        Free, anonymous, and secure file sharing. No registration needed.
-                    </p>
-                </div>
-
-                {/* Nav Links */}
-                <nav className="flex flex-wrap justify-center gap-5 text-sm text-gray-400 border-t border-white/5 pt-6">
-                    <Link to="/" className="hover:text-white transition">Home</Link>
-                    <Link to="/blog" className="hover:text-white transition">Blog</Link>
-                    <Link to="/about" className="hover:text-white transition">About Us</Link>
-                    <Link to="/contact" className="hover:text-fuchsia-400 transition font-semibold">Contact Us</Link>
-                    <Link to="/security" className="hover:text-white transition">Security Center</Link>
-                    <Link to="/technology" className="hover:text-white transition">Technology</Link>
-                    <Link to="/faq" className="hover:text-white transition">FAQ</Link>
-                    <Link to="/privacy" className="hover:text-white transition">Privacy Policy</Link>
-                    <Link to="/terms" className="hover:text-white transition">Terms &amp; Acceptable Use</Link>
-                    <a href="mailto:fylshare.official@gmail.com?subject=Report%20Abuse%20%2F%20Takedown%20Request" className="text-red-400/80 hover:text-red-300 transition">Report Abuse</a>
-                </nav>
+  return (
+    <footer className="mt-24 border-t border-[#D2D2D7]/80 bg-[#F5F5F7] text-[#6E6E73]">
+      <div className="max-w-[1160px] mx-auto px-4 sm:px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-[#D2D2D7]/60">
+          <div className="md:col-span-2 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-md bg-[#1D1D1F] text-white flex items-center justify-center text-[11px] font-semibold">
+                F
+              </span>
+              <span className="text-[15px] font-semibold text-[#1D1D1F]">Fylshare</span>
             </div>
-        </footer>
-    );
+            <p className="text-[13px] text-[#6E6E73] max-w-md leading-relaxed">
+              Temporary file transfers using a 6-digit retrieval code or QR link, plus PIN-protected Workspace folders. No account required for standard transfers.
+            </p>
+            <p className="text-[12px] text-[#6E6E73]">
+              Support &amp; abuse reports:{" "}
+              <a
+                href="mailto:fylshare.official@gmail.com"
+                className="text-[#0066CC] hover:underline"
+              >
+                fylshare.official@gmail.com
+              </a>
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[12px] font-semibold text-[#1D1D1F] uppercase tracking-wider">
+              Product
+            </h3>
+            <ul className="space-y-1.5 text-[13px]">
+              <li>
+                <Link to="/" className="hover:text-[#1D1D1F] transition-colors">
+                  Send Files
+                </Link>
+              </li>
+              <li>
+                <Link to="/search" className="hover:text-[#1D1D1F] transition-colors">
+                  Receive with Code
+                </Link>
+              </li>
+              <li>
+                <Link to="/workspace" className="hover:text-[#1D1D1F] transition-colors">
+                  Workspace Box
+                </Link>
+              </li>
+              <li>
+                <Link to="/technology" className="hover:text-[#1D1D1F] transition-colors">
+                  Architecture &amp; Lifecycle
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className="hover:text-[#1D1D1F] transition-colors">
+                  Guides
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[12px] font-semibold text-[#1D1D1F] uppercase tracking-wider">
+              Trust &amp; Legal
+            </h3>
+            <ul className="space-y-1.5 text-[13px]">
+              <li>
+                <Link to="/security" className="hover:text-[#1D1D1F] transition-colors">
+                  Security &amp; Data Handling
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="hover:text-[#1D1D1F] transition-colors">
+                  Privacy Notice
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="hover:text-[#1D1D1F] transition-colors">
+                  Terms &amp; Acceptable Use
+                </Link>
+              </li>
+              <li>
+                <Link to="/faq" className="hover:text-[#1D1D1F] transition-colors">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-[#1D1D1F] transition-colors">
+                  Report Abuse / Contact
+                </Link>
+              </li>
+              {onOpenCookieSettings && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={onOpenCookieSettings}
+                    className="text-left hover:text-[#1D1D1F] transition-colors underline"
+                  >
+                    Analytics Preferences
+                  </button>
+                </li>
+              )}
+            </ul>
+          </div>
+        </div>
+
+        <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[12px] text-[#6E6E73]">
+          <p>&copy; {year} Fylshare. All rights reserved.</p>
+          <p>
+            Standard anonymous uploads expire after 48 hours. Only upload content you own or have the legal right to share.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
 }

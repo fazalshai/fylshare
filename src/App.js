@@ -6,8 +6,6 @@ import {
   useLocation,
   Link,
 } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, CheckCircle2, Lock, Clock, AlertTriangle } from "lucide-react";
 
 import Home from "./Home";
 import Search from "./Search";
@@ -24,73 +22,81 @@ import SecurityGuide from "./SecurityGuide";
 import Blog from "./Blog";
 import Technology from "./Technology";
 import Footer from "./Footer";
+import {
+  getAnalyticsConsent,
+  setAnalyticsConsent,
+  trackPageView,
+} from "./analytics";
 
 const ROUTE_SEO = {
   "/": {
-    title: "Fylshare | Free Secure Anonymous File Sharing — No Account Needed",
+    title: "Fylshare — Files shared. Simply.",
     description:
-      "Fylshare is a free, secure, and anonymous file sharing platform. Upload files up to 1GB with AES-256 encryption, no registration required. Share anything instantly with a unique 6-digit code.",
+      "Upload your files up to 1GB. Share a 6-digit code or QR code. No account required. Standard transfers expire automatically after 48 hours.",
   },
   "/search": {
-    title: "Retrieve Files by 6-Digit Code | Fylshare Instant Download",
+    title: "Receive Files with a 6-Digit Code | Fylshare",
     description:
-      "Enter your 6-digit Fylshare retrieval code to preview and download shared files instantly on any device. No login or account required.",
+      "Enter a 6-digit Fylshare retrieval code to access and download shared files. No account required.",
   },
   "/workspace": {
-    title: "Workspace Box — Permanent PIN-Protected Shared Folders | Fylshare",
+    title: "Workspace Box — PIN-Protected Shared Folders | Fylshare",
     description:
-      "Create a free PIN-protected cloud Workspace Box on Fylshare to store, organize, and share project files across devices.",
+      "Create or open a PIN-protected Workspace Box on Fylshare to manage shared project files across devices.",
   },
   "/blog": {
-    title: "Fylshare Blog — File Sharing Guides, Privacy & Security Insights",
+    title: "Guides & Technical Articles | Fylshare",
     description:
-      "Read expert tutorials, comparisons, and cybersecurity guides on encrypted file transfer, sending large videos without quality loss, and data privacy.",
+      "Practical guides on file transfer workflows, transport security, and data retention practices.",
   },
   "/about": {
-    title: "About Fylshare — Our Mission for Frictionless Private File Sharing",
+    title: "About Fylshare — Service Overview & Operator Information",
     description:
-      "Learn how Fylshare builds fast, anonymous, and encrypted file transfer tools designed for privacy and zero-account convenience.",
+      "Learn how Fylshare operates, how transfers are handled, and how to contact our support and safety team.",
   },
   "/contact": {
-    title: "Contact Fylshare — Support, Feedback & Inquiries",
+    title: "Support & Abuse Reporting | Fylshare",
     description:
-      "Get in touch with the Fylshare team for technical support, partnership inquiries, or security reporting.",
+      "Contact Fylshare support or submit an abuse, copyright, or privacy takedown request.",
   },
   "/faq": {
-    title: "Frequently Asked Questions (FAQ) | Fylshare Help Center",
+    title: "Frequently Asked Questions | Fylshare",
     description:
-      "Answers to common questions about Fylshare's 6-digit retrieval codes, 1GB free file limit, AES-256 encryption, Workspace Boxes, and file expiry.",
+      "Clear answers about Fylshare file size limits, supported formats, 48-hour expiration, and privacy practices.",
   },
   "/security": {
-    title: "Security Architecture & Encryption Guide | Fylshare",
+    title: "Security & Data Handling | Fylshare",
     description:
-      "Explore how Fylshare protects your files using TLS 1.3 transport security, AES-256 cloud encryption, executable screening, and automatic expiry.",
+      "Understand how Fylshare uses TLS 1.3 in transit, cloud storage encryption at rest, file validation, and access controls.",
   },
   "/technology": {
-    title: "Technology Stack & Cloud Infrastructure | Fylshare",
+    title: "Architecture & File Lifecycle | Fylshare",
     description:
-      "Discover the modern web and cloud storage architecture powering Fylshare's high-speed 6-digit code and QR file transfers.",
+      "Technical documentation of Fylshare's upload validation, retrieval authorization, and automated deletion lifecycle.",
   },
   "/privacy": {
-    title: "Privacy Policy — Zero Identity Data Minimization | Fylshare",
+    title: "Privacy Notice — What We Collect & Retain | Fylshare",
     description:
-      "Read Fylshare's Privacy Policy detailing our commitment to anonymous file transfers, minimal data retention, and GDPR/PDPL alignment.",
+      "Read Fylshare's Privacy Notice covering stored files, transfer labels, country estimation, subprocessors, and retention windows.",
   },
   "/terms": {
     title: "Terms of Service & Acceptable Use Policy | Fylshare",
     description:
-      "Review Fylshare's Terms of Service, Acceptable Use Policy (AUP), copyright compliance, and abuse takedown procedures.",
+      "Review Fylshare's Terms of Service, Acceptable Use Policy, prohibited content rules, and takedown procedures.",
   },
 };
 
-function AppContent() {
+export function AppContent() {
   const location = useLocation();
-  const [showConsentModal, setShowConsentModal] = useState(false);
-  const [agreedChecked, setAgreedChecked] = useState(true);
+  const isAdminRoute = location.pathname.startsWith("/admin");
+  const [consentChoice, setConsentChoice] = useState(() => getAnalyticsConsent());
+  const [showConsentBanner, setShowConsentBanner] = useState(
+    () => getAnalyticsConsent() === null
+  );
 
   useEffect(() => {
-    // 1. Dynamically set user-selected canonical URL, unique <title>, and <meta name="description"> per route
-    const cleanPath = location.pathname === "/" ? "/" : location.pathname.replace(/\/+$/, "");
+    const cleanPath =
+      location.pathname === "/" ? "/" : location.pathname.replace(/\/+$/, "");
     const canonicalUrl = `https://fylshare.com${cleanPath}`;
 
     let canonicalTag = document.querySelector("link[rel='canonical']");
@@ -101,158 +107,34 @@ function AppContent() {
     }
     canonicalTag.setAttribute("href", canonicalUrl);
 
-    const ogUrlTag = document.querySelector("meta[property='og:url']");
-    if (ogUrlTag) ogUrlTag.setAttribute("content", canonicalUrl);
-
     const seo = ROUTE_SEO[cleanPath] || ROUTE_SEO["/"];
-    document.title = seo.title;
+    document.title = isAdminRoute ? "Fylshare Admin Console" : seo.title;
 
     const descTag = document.querySelector("meta[name='description']");
-    if (descTag) descTag.setAttribute("content", seo.description);
-
-    const ogTitleTag = document.querySelector("meta[property='og:title']");
-    if (ogTitleTag) ogTitleTag.setAttribute("content", seo.title);
-
-    const ogDescTag = document.querySelector("meta[property='og:description']");
-    if (ogDescTag) ogDescTag.setAttribute("content", seo.description);
-
-    // 2. Show the Terms & Acceptable Use dialogue once per browser session for human users
-    // Never block search engine crawlers (Googlebot, Bingbot, etc.) or /terms & /privacy pages
-    const isBot = /bot|googlebot|crawler|spider|robot|crawling|mediapartners/i.test(
-      navigator.userAgent || ""
-    );
-    if (isBot || cleanPath === "/terms" || cleanPath === "/privacy") {
-      return;
+    if (descTag && !isAdminRoute) {
+      descTag.setAttribute("content", seo.description);
     }
-    const sessionAccepted = sessionStorage.getItem("fylshare_session_consented");
-    if (!sessionAccepted) {
-      setShowConsentModal(true);
+
+    // Only track public page views when user has opted in; /admin is always excluded
+    if (!isAdminRoute && consentChoice === "granted") {
+      trackPageView(cleanPath, seo.title);
     }
-  }, [location.pathname]);
+  }, [location.pathname, isAdminRoute, consentChoice]);
 
-  const handleAcceptTerms = () => {
-    if (!agreedChecked) return;
-
-    // Record legal acceptance, policy version, and timestamp (UAE TDRA & Global Compliance)
-    const consentRecord = {
-      accepted: true,
-      policyVersion: "2026-11-TDRA-AUP",
-      timestamp: new Date().toISOString(),
-    };
-    localStorage.setItem("fylshare_aup_consent", JSON.stringify(consentRecord));
-    sessionStorage.setItem("fylshare_session_consented", "true");
-
-    setShowConsentModal(false);
+  const handleConsentDecision = (decision) => {
+    const saved = setAnalyticsConsent(decision);
+    setConsentChoice(saved);
+    setShowConsentBanner(false);
+    if (saved === "granted" && !isAdminRoute) {
+      trackPageView(location.pathname, document.title);
+    }
   };
 
   return (
-    <>
-      <div className="fixed inset-0 z-[-1] overflow-hidden bg-[#050505]">
-        {/* Lava Lamp Blobs */}
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
-      </div>
+    <div className="min-h-screen flex flex-col bg-[#FFFFFF] text-[#1D1D1F]">
+      {!isAdminRoute && <InnovativeHeader />}
 
-      {/* Welcome & Terms/AUP Consent Dialogue (Pairs Legal Compliance with Monetag Click Trigger) */}
-      <AnimatePresence>
-        {showConsentModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.92, opacity: 0, y: 12 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.92, opacity: 0, y: 12 }}
-              className="w-full max-w-lg rounded-3xl bg-[#0e1017] border border-white/15 p-6 sm:p-8 shadow-[0_0_60px_rgba(217,70,239,0.2)] text-left"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-fuchsia-500/20 to-cyan-500/20 border border-fuchsia-500/30 flex items-center justify-center text-fuchsia-400 shrink-0">
-                  <ShieldCheck size={24} />
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-cyan-400">
-                    Secure &amp; Compliant File Sharing
-                  </span>
-                  <h2 className="text-xl sm:text-2xl font-bold font-[Orbitron] text-white">
-                    Welcome to Fylshare
-                  </h2>
-                </div>
-              </div>
-
-              <p className="text-xs sm:text-sm text-gray-300 mb-4 leading-relaxed">
-                Before uploading or retrieving files, please confirm our responsible sharing rules:
-              </p>
-
-              <ul className="space-y-2.5 mb-6 text-xs text-gray-300 bg-white/[0.03] p-4 rounded-2xl border border-white/10">
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 size={15} className="text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Only upload files you own or have the lawful right to share.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <AlertTriangle size={15} className="text-amber-400 shrink-0 mt-0.5" />
-                  <span>Do not upload illegal, copyrighted, adult, or harmful/malware content.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <Lock size={15} className="text-cyan-400 shrink-0 mt-0.5" />
-                  <span>Transfers are protected in transit (TLS 1.3) and screened against executable payloads.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <Clock size={15} className="text-fuchsia-400 shrink-0 mt-0.5" />
-                  <span>Anonymous transfers automatically expire and are permanently deleted.</span>
-                </li>
-              </ul>
-
-              <label className="flex items-start gap-3 cursor-pointer mb-6 select-none">
-                <input
-                  type="checkbox"
-                  checked={agreedChecked}
-                  onChange={(e) => setAgreedChecked(e.target.checked)}
-                  className="mt-1 w-4 h-4 accent-fuchsia-500 rounded cursor-pointer"
-                />
-                <span className="text-xs text-gray-300 leading-relaxed">
-                  I agree to the{" "}
-                  <Link
-                    to="/terms"
-                    onClick={() => setShowConsentModal(false)}
-                    className="text-fuchsia-400 underline hover:text-fuchsia-300"
-                  >
-                    Terms of Service &amp; Acceptable Use Policy
-                  </Link>{" "}
-                  and have read the{" "}
-                  <Link
-                    to="/privacy"
-                    onClick={() => setShowConsentModal(false)}
-                    className="text-cyan-400 underline hover:text-cyan-300"
-                  >
-                    Privacy Policy
-                  </Link>
-                  .
-                </span>
-              </label>
-
-              <button
-                onClick={handleAcceptTerms}
-                disabled={!agreedChecked}
-                className={`w-full py-3.5 rounded-xl font-bold text-sm transition shadow-lg ${
-                  agreedChecked
-                    ? "bg-gradient-to-r from-fuchsia-600 to-cyan-600 hover:from-fuchsia-500 hover:to-cyan-500 text-white shadow-fuchsia-500/25 cursor-pointer"
-                    : "bg-white/10 text-gray-500 cursor-not-allowed"
-                }`}
-              >
-                I Agree &amp; Continue to Fylshare →
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <InnovativeHeader />
-      <div className="min-h-[calc(100vh-200px)]">
+      <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<Search />} />
@@ -267,18 +149,55 @@ function AppContent() {
           <Route path="/technology" element={<Technology />} />
           <Route path="/blog" element={<Blog />} />
         </Routes>
-      </div>
-      <Footer />
-    </>
+      </main>
+
+      {!isAdminRoute && (
+        <Footer onOpenCookieSettings={() => setShowConsentBanner(true)} />
+      )}
+
+      {/* Non-blocking Optional Analytics Consent Bar (Equally accessible Accept & Decline) */}
+      {!isAdminRoute && showConsentBanner && (
+        <aside
+          aria-label="Analytics preferences"
+          className="fixed bottom-4 left-4 right-4 z-50 max-w-[760px] mx-auto bg-white border border-[#D2D2D7] rounded-2xl shadow-lg p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        >
+          <div className="text-[12px] text-[#6E6E73] leading-relaxed">
+            <p className="font-semibold text-[#1D1D1F] text-[13px] mb-0.5">
+              Optional Analytics Preference
+            </p>
+            <p>
+              Core file transfers work without tracking cookies. With your permission, we use Google Analytics (GA4) with redacted URLs to measure aggregate page usage. We never send filenames, labels, or retrieval codes to analytics.{" "}
+              <Link to="/privacy" className="text-[#0066CC] underline">
+                Privacy Notice
+              </Link>
+            </p>
+          </div>
+          <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-end">
+            <button
+              type="button"
+              onClick={() => handleConsentDecision("denied")}
+              className="px-4 py-2 rounded-lg border border-[#D2D2D7] bg-[#F5F5F7] hover:bg-[#E8E8ED] text-[#1D1D1F] text-[12px] font-semibold transition-colors"
+            >
+              Decline
+            </button>
+            <button
+              type="button"
+              onClick={() => handleConsentDecision("granted")}
+              className="px-4 py-2 rounded-lg bg-[#0066CC] hover:bg-[#0055B3] text-white text-[12px] font-semibold transition-colors"
+            >
+              Accept Analytics
+            </button>
+          </div>
+        </aside>
+      )}
+    </div>
   );
 }
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-transparent text-white font-[Poppins]">
-        <AppContent />
-      </div>
+      <AppContent />
     </Router>
   );
 }

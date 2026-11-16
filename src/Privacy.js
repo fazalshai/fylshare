@@ -1,71 +1,205 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export default function PrivacyPolicy() {
-    return (
-        <div className="min-h-screen pt-24 pb-20 px-4 max-w-4xl mx-auto text-gray-300 font-[Poppins]">
-            <h1 className="text-4xl font-bold text-white mb-8 font-[Orbitron]">Privacy Policy</h1>
-            <p className="mb-8 text-gray-400">Last Updated: February 2, 2026</p>
+  return (
+    <div className="bg-[#FFFFFF] text-[#1D1D1F] py-14 px-4 sm:px-6">
+      <div className="max-w-[820px] mx-auto space-y-10">
+        <header className="border-b border-[#D2D2D7] pb-6">
+          <p className="text-[12px] font-semibold uppercase tracking-wider text-[#6E6E73] mb-1">
+            Privacy Notice
+          </p>
+          <h1 className="text-[32px] sm:text-[40px] font-semibold tracking-tight text-[#1D1D1F]">
+            How Fylshare Handles Your Data
+          </h1>
+          <p className="text-[14px] text-[#6E6E73] mt-2">
+            Last updated: November 16, 2026 · Contact:{" "}
+            <a
+              href="mailto:fylshare.official@gmail.com"
+              className="text-[#0066CC] hover:underline"
+            >
+              fylshare.official@gmail.com
+            </a>
+          </p>
+        </header>
 
-            <div className="space-y-8 bg-black/40 p-8 md:p-12 rounded-3xl border border-white/10 backdrop-blur-md">
-                <section>
-                    <h2 className="text-xl font-bold text-fuchsia-400 mb-4">1. Introduction</h2>
-                    <p className="leading-relaxed">
-                        Welcome to Fylshare ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about this privacy notice or our practices with regard to your personal information, please contact us at <a href="mailto:fylshare.official@gmail.com" className="text-cyan-400 hover:underline">fylshare.official@gmail.com</a>.
-                    </p>
-                </section>
+        <section className="space-y-3 text-[15px] leading-relaxed text-[#1D1D1F]">
+          <h2 className="text-[20px] font-semibold">1. Overview &amp; Scope</h2>
+          <p className="text-[#6E6E73]">
+            Fylshare provides temporary file transfers using a 6-digit retrieval code or tokenized QR link, as well as PIN-protected Workspace Boxes. You do not need to create an account or provide an email address to send or receive files. This notice explains what information our systems process, who can access it, and how long it is retained.
+          </p>
+        </section>
 
-                <section>
-                    <h2 className="text-xl font-bold text-fuchsia-400 mb-4">2. Information We Collect</h2>
-                    <p className="mb-4">We strictly adhere to a data minimization policy. We collect only what is necessary to provide our service:</p>
-                    <ul className="list-disc pl-5 space-y-2">
-                        <li><strong>Uploaded Content:</strong> Any files you upload are stored on our secure servers (Google Firebase) for the sole purpose of transfer. These files are encrypted at rest and in transit.</li>
-                        <li><strong>Usage Data:</strong> We automatically collect certain information when you visit, use, or navigate the Website. This information does not reveal your specific identity (like your name or contact information) but may include device and usage information, such as your IP address, browser and device characteristics, operating system, language preferences, referring URLs, device name, country, location, information about how and when you use our Website, and other technical information.</li>
-                    </ul>
-                </section>
-
-                <section>
-                    <h2 className="text-xl font-bold text-fuchsia-400 mb-4">3. How We Use Your Information</h2>
-                    <p className="mb-4">We process your information for purposes based on legitimate business interests, the fulfillment of our contract with you, compliance with our legal obligations, and/or your consent.</p>
-                    <ul className="list-disc pl-5 space-y-2">
-                        <li>To facilitate file transfers between users.</li>
-                        <li>To maintain the safety and security of our Website (e.g. fraud monitoring and prevention).</li>
-                        <li>To deliver targeted advertising (via Google AdSense) to support our free service.</li>
-                    </ul>
-                </section>
-
-                <section>
-                    <h2 className="text-xl font-bold text-fuchsia-400 mb-4">4. Cookie Policy & Advertising</h2>
-                    <p className="mb-4">
-                        We use cookies to enhance your browsing experience. Specifically, we use <strong>Google AdSense</strong> to display advertisements.
-                    </p>
-                    <ul className="list-disc pl-5 space-y-2">
-                        <li>Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to your website or other websites.</li>
-                        <li>Google's use of advertising cookies enables it and its partners to serve ads to your users based on their visit to your sites and/or other sites on the Internet.</li>
-                        <li>Users may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" className="text-cyan-400 hover:underline" target="_blank" rel="noreferrer">Google Ads Settings</a>.</li>
-                    </ul>
-                </section>
-
-                <section>
-                    <h2 className="text-xl font-bold text-fuchsia-400 mb-4">5. Data Retention</h2>
-                    <p className="leading-relaxed">
-                        We only keep your personal information and uploaded files for as long as it is necessary for the purposes set out in this privacy notice, unless a longer retention period is required or permitted by law. Files uploaded to "Workspaces" are retained until deleted by the user. Anonymous uploads may be subject to automated deletion policies (e.g., after 30 days) to preserve server space.
-                    </p>
-                </section>
-
-                <section>
-                    <h2 className="text-xl font-bold text-fuchsia-400 mb-4">6. Security of Your Information</h2>
-                    <p className="leading-relaxed">
-                        We use administrative, technical, and physical security measures to help protect your personal information. Files are encrypted using AES-256 standards. However, please also remember that we cannot guarantee that the internet itself is 100% secure. Although we will do our best to protect your personal information, transmission of personal information to and from our Website is at your own risk.
-                    </p>
-                </section>
-
-                <section>
-                    <h2 className="text-xl font-bold text-fuchsia-400 mb-4">7. Contact Us</h2>
-                    <p className="leading-relaxed">
-                        If you have general questions about the Site or this Privacy Policy, please contact us at: <a href="mailto:fylshare.official@gmail.com" className="text-cyan-400 hover:underline">fylshare.official@gmail.com</a>
-                    </p>
-                </section>
+        <section className="space-y-3 text-[15px] leading-relaxed">
+          <h2 className="text-[20px] font-semibold">2. Information We Process</h2>
+          <div className="bg-[#F5F5F7] rounded-2xl p-6 border border-[#D2D2D7]/80 space-y-4 text-[14px]">
+            <div>
+              <h3 className="font-semibold text-[#1D1D1F]">
+                A. Uploaded File Contents
+              </h3>
+              <p className="text-[#6E6E73] mt-0.5">
+                Files you upload are transmitted over HTTPS (TLS 1.3) to our Node.js ingestion service and stored as private objects in Google Cloud Storage (via Firebase). Standard anonymous transfers expire 48 hours after upload, after which download access is disabled and the stored objects are deleted by our automated cleanup job.
+              </p>
             </div>
-        </div>
-    );
+
+            <div>
+              <h3 className="font-semibold text-[#1D1D1F]">
+                B. Optional Transfer Label &amp; Filenames
+              </h3>
+              <p className="text-[#6E6E73] mt-0.5">
+                If you enter an optional Transfer Label, it is stored alongside the original filenames so the recipient can recognize the package. Do not include sensitive personal information in transfer labels. When an anonymous transfer expires or is revoked, the transfer label, filenames, and retrieval code are scrubbed from the operational record.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-[#1D1D1F]">
+                C. Approximate Country &amp; Operational Metadata
+              </h3>
+              <p className="text-[#6E6E73] mt-0.5">
+                We derive an approximate country code (for example, AE or IN) from standard network/CDN proxy headers when available, along with coarse device category (mobile, desktop, or tablet) and transfer byte counts. We do not request browser GPS geolocation permissions, and we do not store raw visitor IP addresses on transfer documents. Transient IP rate-limiting counters are held in server memory for up to 5 minutes to prevent code-guessing abuse.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-[#1D1D1F]">
+                D. Local Browser Storage
+              </h3>
+              <p className="text-[#6E6E73] mt-0.5">
+                To help you keep track of recent uploads without an account, your browser stores a list of up to 5 recent active transfers in <code className="font-mono">localStorage</code> on your device, including a revocation token that lets you delete your stored server files early.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-3 text-[15px] leading-relaxed">
+          <h2 className="text-[20px] font-semibold">
+            3. What the Operator Can See
+          </h2>
+          <p className="text-[#6E6E73]">
+            Fylshare encrypts data in transit (TLS 1.3) and relies on Google Cloud Storage server-side encryption (AES-256) at rest. However, Fylshare is <strong>not</strong> a client-side zero-knowledge or end-to-end encrypted service because files pass through our server for format validation and storage management.
+          </p>
+          <p className="text-[#6E6E73]">
+            By default, the Fylshare admin console displays operational metadata (timestamps, file counts, total bytes, lifecycle status, and approximate country) without exposing raw retrieval codes or direct download links. Authorized full administrators can generate a temporary inspection link only when investigating a documented abuse report or security incident, and every such action is recorded in a restricted Admin Audit Log.
+          </p>
+        </section>
+
+        <section className="space-y-3 text-[15px] leading-relaxed">
+          <h2 className="text-[20px] font-semibold">
+            4. Data Retention Schedule
+          </h2>
+          <div className="overflow-x-auto border border-[#D2D2D7] rounded-2xl">
+            <table className="w-full text-left border-collapse text-[13px]">
+              <thead>
+                <tr className="bg-[#F5F5F7] border-b border-[#D2D2D7] text-[#1D1D1F] font-semibold">
+                  <th className="py-3 px-4">Record Type</th>
+                  <th className="py-3 px-4">Retention Window</th>
+                  <th className="py-3 px-4">Notes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#D2D2D7]/60 text-[#6E6E73]">
+                <tr>
+                  <td className="py-3 px-4 font-medium text-[#1D1D1F]">
+                    Anonymous File Contents
+                  </td>
+                  <td className="py-3 px-4">48 hours</td>
+                  <td className="py-3 px-4">
+                    Access stops immediately at expiry; objects are deleted from storage by hourly cleanup.
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4 font-medium text-[#1D1D1F]">
+                    Transfer Labels, Filenames &amp; 6-Digit Codes
+                  </td>
+                  <td className="py-3 px-4">48 hours</td>
+                  <td className="py-3 px-4">
+                    Redacted automatically when the transfer expires, is revoked, or is removed.
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4 font-medium text-[#1D1D1F]">
+                    Workspace Box Files
+                  </td>
+                  <td className="py-3 px-4">Until deleted</td>
+                  <td className="py-3 px-4">
+                    Retained until deleted by a user with the Workspace PIN or removed for policy violations.
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4 font-medium text-[#1D1D1F]">
+                    Minimized Operational History
+                  </td>
+                  <td className="py-3 px-4">90 days</td>
+                  <td className="py-3 px-4">
+                    Stores non-identifying byte counts, file counts, status, and approximate country.
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4 font-medium text-[#1D1D1F]">
+                    Admin Audit &amp; Moderation Logs
+                  </td>
+                  <td className="py-3 px-4">180 days</td>
+                  <td className="py-3 px-4">
+                    Retained for security accountability and handling lawful or abuse inquiries.
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4 font-medium text-[#1D1D1F]">
+                    Aggregate Daily Counters
+                  </td>
+                  <td className="py-3 px-4">Indefinite</td>
+                  <td className="py-3 px-4">
+                    Daily numerical totals containing no personal data or identifiers.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="space-y-3 text-[15px] leading-relaxed">
+          <h2 className="text-[20px] font-semibold">
+            5. Service Providers (Subprocessors) &amp; Analytics
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[#6E6E73] text-[14px]">
+            <li>
+              <strong className="text-[#1D1D1F]">Google Cloud Storage / Firebase:</strong>{" "}
+              Stores uploaded file objects in private cloud buckets.
+            </li>
+            <li>
+              <strong className="text-[#1D1D1F]">MongoDB Atlas:</strong>{" "}
+              Stores transfer metadata, workspace records, and operational logs.
+            </li>
+            <li>
+              <strong className="text-[#1D1D1F]">Vercel &amp; Render:</strong>{" "}
+              Host the web application frontend and Node.js API backend.
+            </li>
+            <li>
+              <strong className="text-[#1D1D1F]">Google Analytics 4 (Optional):</strong>{" "}
+              Loaded only if you click “Accept Analytics” in the consent bar. When enabled, URLs are sanitized to remove retrieval codes and query strings, and filenames/labels are never transmitted.
+            </li>
+          </ul>
+        </section>
+
+        <section className="space-y-3 text-[15px] leading-relaxed">
+          <h2 className="text-[20px] font-semibold">
+            6. Deletion Requests &amp; Contact
+          </h2>
+          <p className="text-[#6E6E73]">
+            If you uploaded an anonymous transfer from your current browser, you can delete the stored files immediately using the <strong>“Delete server files”</strong> action under “Recent transfers on this device” on the{" "}
+            <Link to="/" className="text-[#0066CC] hover:underline">
+              homepage
+            </Link>
+            . For privacy inquiries, takedown requests, or assistance, email{" "}
+            <a
+              href="mailto:fylshare.official@gmail.com"
+              className="text-[#0066CC] hover:underline"
+            >
+              fylshare.official@gmail.com
+            </a>{" "}
+            with the 6-digit code or transfer timestamp. Do not send government ID documents in ordinary support emails.
+          </p>
+        </section>
+      </div>
+    </div>
+  );
 }

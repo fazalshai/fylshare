@@ -1,659 +1,903 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
-import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Check, QrCode, Share2, Zap, Lock, ArrowRight, UploadCloud, Search, Trash2, FolderPlus } from "lucide-react";
+import {
+  Upload,
+  Copy,
+  Check,
+  QrCode,
+  ArrowRight,
+  X,
+  FileText,
+  RefreshCw,
+  Trash2,
+  ShieldAlert,
+  Clock,
+  Info,
+} from "lucide-react";
 import Toast from "./Toast";
 import config from "./config";
+import { trackEvent, getSizeBucket } from "./analytics";
+
+const MAX_FILES = 10;
+const MAX_TOTAL_BYTES = 1024 * 1024 * 1024; // 1 GB
+const BLOCKED_EXTENSIONS =
+  /\.(exe|dll|bat|cmd|scr|vbs|vbe|jse|wsf|wsh|msi|msp|com|pif|cpl|hta|ps1|reg|apk|dmg|pkg|deb|rpm|iso|img)$/i;
+
+const RECENT_STORAGE_KEY = "fylshare_device_transfers_v2";
+
+function formatBytes(bytes) {
+  const n = Number(bytes) || 0;
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function formatExpiryDate(isoString) {
+  if (!isoString) return "48 hours from upload";
+  try {
+    return new Date(isoString).toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return isoString;
+  }
+}
 
 export default function Home() {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
+  const xhrRef = useRef(null);
+
+  const [label, setLabel] = useState("");
   const [files, setFiles] = useState([]);
-  const [toast, setToast] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
-
-  // Instant Quick-Retrieve Code Bar on Homepage
   const [quickCode, setQuickCode] = useState("");
+  const [toast, setToast] = useState(null);
 
-  // Post-upload Persistent Transfer Ticket (stops duplicate panic uploads & drives viral sharing!)
+  // Upload lifecycle state: "idle" | "uploading" | "processing" | "error" | "cancelled" | "success"
+  const [uploadState, setUploadState] = useState("idle");
+  const [bytesUploadedPct, setBytesUploadedPct] = useState(0);
+  const [uploadErrorMsg, setUploadErrorMsg] = useState("");
+
+  // Confirmed transfer result from server
   const [activeTransfer, setActiveTransfer] = useState(null);
   const [recentTransfers, setRecentTransfers] = useState([]);
-  const [copiedField, setCopiedField] = useState(null);
-  const [userLocation, setUserLocation] = useState("");
+  const [copiedKey, setCopiedKey] = useState(null);
+  const [revokingCode, setRevokingCode] = useState(null);
 
-  // 100% Free 1GB Limit to build habit and rapid user adoption
-  const MAX_TOTAL_SIZE = 1024 * 1024 * 1024; // 1GB Free
-
+  // Load and prune expired local transfers on mount
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("fylshare_recent_transfers") || "[]");
-      setRecentTransfers(saved.slice(0, 5));
+      const raw = JSON.parse(localStorage.getItem(RECENT_STORAGE_KEY) || "[]");
+      const now = Date.now();
+      const valid = Array.isArray(raw)
+        ? raw.filter((item) => {
+            if (!item || item.revoked) return false;
+            if (item.expiresAt && new Date(item.expiresAt).getTime() <= now) {
+              return false;
+            }
+            return true;
+          })
+        : [];
+      setRecentTransfers(valid.slice(0, 5));
+      localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(valid.slice(0, 5)));
     } catch {
       setRecentTransfers([]);
     }
-
-    // Detect user location (City, Country + optional browser Geolocation if granted)
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Unknown";
-    fetch("https://ipwho.is/")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data && data.country) {
-          const flag = data.flag?.emoji ? `${data.flag.emoji} ` : "";
-          const locString = `${flag}${data.city ? `${data.city}, ` : ""}${data.country}`;
-          setUserLocation(locString);
-        } else {
-          setUserLocation(tz);
-        }
-      })
-      .catch(() => setUserLocation(tz));
-
-    if ("geolocation" in navigator && navigator.permissions) {
-      navigator.permissions
-        .query({ name: "geolocation" })
-        .then((perm) => {
-          if (perm.state === "granted") {
-            navigator.geolocation.getCurrentPosition(
-              (pos) => {
-                const coords = `${pos.coords.latitude.toFixed(3)}, ${pos.coords.longitude.toFixed(3)}`;
-                setUserLocation((prev) => (prev ? `${prev} (${coords})` : coords));
-              },
-              () => {}
-            );
-          }
-        })
-        .catch(() => {});
-    }
   }, []);
 
-  const triggerToast = (message, type = "info", duration = 6000) => {
-    setToast({ message, type, duration });
+  const triggerToast = (message, type = "info", duration = 5000) => {
+    setToast({ message, type });
     setTimeout(() => setToast(null), duration);
   };
 
-  const BLOCKED_EXTENSIONS = /\.(exe|bat|cmd|scr|vbs|pif|com|msi)$/i;
-
   const onDrop = (acceptedFiles) => {
-    const dangerousFile = acceptedFiles.find((f) => BLOCKED_EXTENSIONS.test(f.name || ""));
-    if (dangerousFile) {
-      triggerToast(`❌ Security Policy: Raw executable files (${dangerousFile.name}) are not permitted.`, "error");
+    setUploadErrorMsg("");
+    const combined = [...files, ...acceptedFiles];
+
+    if (combined.length > MAX_FILES) {
+      setUploadErrorMsg(`You can upload up to ${MAX_FILES} files per transfer.`);
       return;
     }
-    const totalSize = acceptedFiles.reduce((sum, file) => sum + file.size, 0);
-    if (totalSize > MAX_TOTAL_SIZE) {
-      triggerToast("❌ Total upload limit is 1GB per session", "error");
+
+    const blocked = combined.find((f) => BLOCKED_EXTENSIONS.test(f.name || ""));
+    if (blocked) {
+      setUploadErrorMsg(
+        `"${blocked.name}" is an executable or installer format that is not permitted by our supported file policy.`
+      );
       return;
     }
-    setFiles(acceptedFiles);
+
+    const totalSize = combined.reduce((sum, f) => sum + (f.size || 0), 0);
+    if (totalSize > MAX_TOTAL_BYTES) {
+      setUploadErrorMsg("Total transfer size exceeds the 1 GB maximum limit.");
+      return;
+    }
+
+    setFiles(combined);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: true,
-    maxFiles: 10,
-    accept: { "*/*": [] },
+    maxFiles: MAX_FILES,
   });
 
-  const copyToClipboard = (text, label) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(label);
-    setTimeout(() => setCopiedField(null), 2000);
+  const removeSelectedFile = (indexToRemove) => {
+    setFiles((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+    setUploadErrorMsg("");
   };
 
-  const handleQuickRetrieve = (e) => {
+  const handleQuickReceive = (e) => {
     e.preventDefault();
-    const cleaned = quickCode.trim();
-    if (cleaned.length !== 6 || isNaN(cleaned)) {
-      triggerToast("Enter a valid 6-digit retrieval code", "error");
+    const cleaned = quickCode.replace(/\D/g, "").trim();
+    if (cleaned.length !== 6) {
+      triggerToast("Enter a valid 6-digit retrieval code.", "error");
       return;
     }
     navigate(`/search?code=${cleaned}`);
   };
 
-  const handleSubmit = async () => {
+  const copyText = (value, key) => {
+    navigator.clipboard.writeText(value);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  const handleCancelUpload = () => {
+    if (xhrRef.current) {
+      xhrRef.current.abort();
+      xhrRef.current = null;
+    }
+    setUploadState("cancelled");
+    setBytesUploadedPct(0);
+    setUploadErrorMsg("Upload cancelled.");
+  };
+
+  const handleUploadSubmit = async () => {
     if (files.length === 0) {
-      triggerToast("❌ Please drop or select at least one file", "error");
+      setUploadErrorMsg("Select at least one file to upload.");
       return;
     }
-    const senderName = name.trim() || "Anonymous";
-    const totalSize = files.reduce((sum, file) => sum + file.size, 0);
-    if (totalSize > MAX_TOTAL_SIZE) {
-      triggerToast("❌ Total size exceeds 1GB", "error");
+
+    const totalSize = files.reduce((sum, f) => sum + (f.size || 0), 0);
+    if (totalSize > MAX_TOTAL_BYTES) {
+      setUploadErrorMsg("Total size exceeds the 1 GB limit.");
       return;
     }
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-    setLoading(true);
-    setProgress(1);
+    setUploadErrorMsg("");
+    setUploadState("uploading");
+    setBytesUploadedPct(0);
 
-    let finalizeInterval = null;
+    trackEvent("upload_started", {
+      file_count: files.length,
+      size_bucket: getSizeBucket(totalSize),
+      transfer_type: "anonymous",
+    });
+
+    const formData = new FormData();
+    formData.append("name", label.trim().slice(0, 80));
+    formData.append("size", String(totalSize));
+    files.forEach((file) => formData.append("files", file));
 
     try {
-      const formData = new FormData();
-      formData.append("name", senderName);
-      formData.append("code", code);
-      formData.append("size", totalSize);
-      formData.append("location", userLocation || Intl.DateTimeFormat().resolvedOptions().timeZone || "Unknown");
-      files.forEach((file) => formData.append("files", file));
-
       const responseData = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        xhrRef.current = xhr;
         xhr.open("POST", `${config.API_BASE_URL}/api/uploads`, true);
 
         xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            // Map network byte transfer to 1% - 88%, then tick 89% - 99% while cloud storage finalizes
-            const networkPct = Math.max(1, Math.min(88, Math.round((event.loaded / event.total) * 88)));
-            setProgress(networkPct);
-
-            if (event.loaded >= event.total && !finalizeInterval) {
-              finalizeInterval = setInterval(() => {
-                setProgress((prev) => (prev < 99 ? prev + 1 : 99));
-              }, 250);
+          if (event.lengthComputable && event.total > 0) {
+            const actualPct = Math.round((event.loaded / event.total) * 100);
+            setBytesUploadedPct(actualPct);
+            if (event.loaded >= event.total) {
+              setUploadState("processing");
             }
           }
         };
 
         xhr.onload = () => {
-          if (finalizeInterval) clearInterval(finalizeInterval);
+          xhrRef.current = null;
+          let parsed = {};
           try {
-            const parsed = JSON.parse(xhr.responseText || "{}");
-            if (xhr.status >= 200 && xhr.status < 300) {
-              resolve(parsed);
-            } else {
-              reject(parsed);
-            }
-          } catch (err) {
-            reject(err);
+            parsed = JSON.parse(xhr.responseText || "{}");
+          } catch {
+            parsed = {};
+          }
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(parsed);
+          } else {
+            reject(new Error(parsed.error || "Upload could not be completed."));
           }
         };
 
         xhr.onerror = () => {
-          if (finalizeInterval) clearInterval(finalizeInterval);
-          reject(new Error("Network error"));
+          xhrRef.current = null;
+          reject(new Error("Network connection failed during upload."));
+        };
+
+        xhr.onabort = () => {
+          xhrRef.current = null;
+          reject(new Error("ABORTED"));
         };
 
         xhr.send(formData);
       });
 
-      if (responseData) {
-        setProgress(100);
-        // Pause briefly at 100% so the user clearly sees "100% Uploaded Successfully!"
-        await new Promise((r) => setTimeout(r, 650));
+      const shareUrl = responseData.shareToken
+        ? `${window.location.origin}/search?token=${encodeURIComponent(
+            responseData.shareToken
+          )}`
+        : `${window.location.origin}/search?code=${encodeURIComponent(responseData.code)}`;
 
-        const shareUrl = `${window.location.origin}/search?code=${code}`;
-        const ticket = {
-          code,
-          name: senderName,
-          fileNames: files.map((f) => f.name),
-          totalSizeMB: (totalSize / 1024 / 1024).toFixed(2),
-          shareUrl,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        };
-        setActiveTransfer(ticket);
-        const updatedRecent = [ticket, ...recentTransfers.filter((t) => t.code !== code)].slice(0, 5);
-        setRecentTransfers(updatedRecent);
-        localStorage.setItem("fylshare_recent_transfers", JSON.stringify(updatedRecent));
+      const ticket = {
+        transferId: responseData.transferId,
+        code: responseData.code,
+        shareUrl,
+        revokeToken: responseData.revokeToken || null,
+        label: label.trim() || "Untitled transfer",
+        fileCount: responseData.fileCount || files.length,
+        totalBytes: responseData.totalBytes || totalSize,
+        createdAt: responseData.createdAt || new Date().toISOString(),
+        expiresAt:
+          responseData.expiresAt ||
+          new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
+        scanStatus: responseData.scanStatus || "passed",
+      };
 
-        setFiles([]);
-        setName("");
+      setActiveTransfer(ticket);
+      setUploadState("success");
+      setFiles([]);
+      setLabel("");
+
+      // Save minimized record to local device list
+      const updatedRecent = [
+        ticket,
+        ...recentTransfers.filter((t) => t.code !== ticket.code),
+      ].slice(0, 5);
+      setRecentTransfers(updatedRecent);
+      try {
+        localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(updatedRecent));
+      } catch {
+        // Ignore quota errors
       }
-    } catch (error) {
-      if (finalizeInterval) clearInterval(finalizeInterval);
-      console.error("❌ Upload error:", error);
-      triggerToast("❌ Upload failed. Please try again.", "error");
-    } finally {
-      setLoading(false);
-      setProgress(0);
+
+      trackEvent("upload_completed", {
+        file_count: ticket.fileCount,
+        size_bucket: getSizeBucket(ticket.totalBytes),
+        transfer_type: "anonymous",
+        status: "available",
+      });
+    } catch (err) {
+      if (err.message === "ABORTED") return;
+      setUploadState("error");
+      setUploadErrorMsg(err.message || "Upload failed. Please retry.");
+      trackEvent("upload_failed", {
+        file_count: files.length,
+        size_bucket: getSizeBucket(totalSize),
+        transfer_type: "anonymous",
+        error_category: "upload_error",
+      });
     }
   };
 
+  // Clear from local browser storage ONLY (does NOT delete files on server)
+  const handleClearLocalDeviceHistory = (codeToClear = null) => {
+    const next = codeToClear
+      ? recentTransfers.filter((item) => item.code !== codeToClear)
+      : [];
+    setRecentTransfers(next);
+    try {
+      if (next.length === 0) {
+        localStorage.removeItem(RECENT_STORAGE_KEY);
+      } else {
+        localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
+      }
+    } catch {
+      // Ignore
+    }
+    triggerToast(
+      "Removed from this browser's local list. Server files remain active until they expire or are revoked.",
+      "info"
+    );
+  };
+
+  // Revoke transfer & delete actual stored files on the server
+  const handleRevokeServerTransfer = async (transferItem) => {
+    if (!transferItem?.code || !transferItem?.revokeToken) {
+      triggerToast("Revocation token is unavailable for this transfer.", "error");
+      return;
+    }
+    if (
+      !window.confirm(
+        `Delete stored files for code ${transferItem.code} from Fylshare servers immediately? Recipients will no longer be able to download them.`
+      )
+    ) {
+      return;
+    }
+
+    setRevokingCode(transferItem.code);
+    try {
+      const res = await fetch(
+        `${config.API_BASE_URL}/api/uploads/${encodeURIComponent(
+          transferItem.code
+        )}/revoke`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Revoke-Token": transferItem.revokeToken,
+          },
+          body: JSON.stringify({ revokeToken: transferItem.revokeToken }),
+        }
+      );
+
+      if (res.ok) {
+        const next = recentTransfers.filter((t) => t.code !== transferItem.code);
+        setRecentTransfers(next);
+        localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
+        if (activeTransfer?.code === transferItem.code) {
+          setActiveTransfer(null);
+          setUploadState("idle");
+        }
+        trackEvent("deletion_completed", {
+          transfer_type: "anonymous",
+          status: "revoked",
+        });
+        triggerToast(
+          "Transfer revoked and stored files deleted from Fylshare servers.",
+          "success"
+        );
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        triggerToast(
+          errData.error || "Could not revoke transfer on server.",
+          "error"
+        );
+      }
+    } catch {
+      triggerToast("Network error while revoking transfer.", "error");
+    } finally {
+      setRevokingCode(null);
+    }
+  };
+
+  const totalSelectedBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
+
   return (
-    <div className="min-h-screen bg-transparent text-white font-[Poppins] px-4 pt-24 relative">
-      {/* Loader Overlay */}
-      <AnimatePresence>
-        {loading && (
-          <motion.div
-            className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="text-center w-full max-w-sm px-6 py-8 rounded-3xl bg-[#11131a] border border-white/15 shadow-2xl"
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-            >
-              <div className="relative w-24 h-24 mx-auto mb-5 flex items-center justify-center">
-                <div
-                  className={`absolute inset-0 rounded-full border-4 ${
-                    progress === 100
-                      ? "border-emerald-500"
-                      : "border-t-fuchsia-500 border-r-cyan-500 border-b-white/10 border-l-white/10 animate-spin"
-                  }`}
-                ></div>
-                <span className="text-xl font-extrabold font-[Orbitron] text-white">
-                  {progress}%
-                </span>
-              </div>
+    <div className="bg-[#FFFFFF] text-[#1D1D1F]">
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-20 right-4 z-50">
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        </div>
+      )}
 
-              {/* Smooth Progress Bar */}
-              <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden mb-3">
-                <div
-                  className={`h-full transition-all duration-200 rounded-full ${
-                    progress === 100
-                      ? "bg-emerald-400"
-                      : "bg-gradient-to-r from-fuchsia-500 to-cyan-400"
-                  }`}
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+      {/* Main Hero & Transfer Workspace */}
+      <section className="max-w-[1140px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-16">
+        {/* Restrained Hero Header */}
+        <div className="max-w-2xl mx-auto text-center mb-10">
+          <h1 className="text-[34px] sm:text-[48px] font-semibold tracking-tight text-[#1D1D1F] leading-[1.1] mb-3">
+            Files shared. Simply.
+          </h1>
+          <p className="text-[16px] sm:text-[18px] text-[#6E6E73] font-normal leading-relaxed">
+            Upload your files. Share a code or QR. No account required.
+          </p>
+        </div>
 
-              <p className="text-base font-bold text-white">
-                {progress < 100
-                  ? `${progress}% Done — Uploading...`
-                  : "✅ 100% Uploaded Successfully!"}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                {progress < 88
-                  ? "Sending encrypted bytes..."
-                  : progress < 100
-                  ? "Finalizing your 6-digit code..."
-                  : "Generating transfer ticket..."}
-              </p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Toast */}
-      <div className="fixed top-24 right-6 z-40">
-        <AnimatePresence>
-          {toast && (
-            <Toast
-              message={toast.message}
-              type={toast.type}
-              durationMs={toast.duration || 6000}
-              onClose={() => setToast(null)}
-            />
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* HERO SECTION: Dual Action (Instant Code Retrieval + 100% Free Upload) */}
-      <div className="max-w-5xl mx-auto mt-2">
-        {/* Quick Retrieve Bar — Top Priority for Lab / Phone Users with a 6-digit code */}
-        <form
-          onSubmit={handleQuickRetrieve}
-          className="mb-8 glass-panel p-3 sm:p-4 rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-950/30 via-black/40 to-fuchsia-950/30 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-300 shrink-0">
-              <Search size={18} />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-bold text-white">Have a 6-Digit Code?</p>
-              <p className="text-xs text-gray-400">Enter your code to unlock and download files instantly</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <input
-              type="text"
-              maxLength={6}
-              value={quickCode}
-              onChange={(e) => setQuickCode(e.target.value.replace(/\D/g, ""))}
-              placeholder="Enter 6-digit code"
-              className="w-full sm:w-52 px-4 py-2.5 rounded-xl bg-black/50 border border-white/15 text-white font-mono tracking-widest text-center text-sm focus:outline-none focus:border-cyan-400"
-            />
-            <button
-              type="submit"
-              className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-sm shrink-0 transition flex items-center gap-1.5"
-            >
-              Get File <ArrowRight size={15} />
-            </button>
-          </div>
-        </form>
-
-        {/* Main Center Area: Either Persistent Transfer Success Ticket OR Upload Card */}
-        {activeTransfer ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="glass-panel p-8 rounded-3xl border-2 border-emerald-500/40 bg-[#0d1117]/90 shadow-[0_0_50px_rgba(16,185,129,0.15)] max-w-3xl mx-auto"
-          >
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="flex-1 text-left space-y-5 w-full">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-                  ✅ Transfer Live &amp; Ready to Download
+        {/* Two-Column Core Interaction: Send (Left/Main) + Receive (Right/Side) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* SEND PANEL (7 columns on desktop) */}
+          <div className="lg:col-span-7 apple-card rounded-2xl p-6 sm:p-8">
+            {activeTransfer ? (
+              <div className="space-y-6" aria-live="polite">
+                <div className="flex items-center justify-between border-b border-[#D2D2D7]/70 pb-4">
+                  <div>
+                    <span className="inline-block text-[11px] font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full mb-1">
+                      Transfer Available
+                    </span>
+                    <h2 className="text-[20px] font-semibold text-[#1D1D1F]">
+                      Ready to share
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTransfer(null);
+                      setUploadState("idle");
+                    }}
+                    className="text-[13px] font-medium text-[#0066CC] hover:text-[#0055B3]"
+                  >
+                    Send another file
+                  </button>
                 </div>
 
-                <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Your 6-Digit Retrieval Code</p>
-                  <div className="flex items-center gap-3">
-                    <span className="text-5xl sm:text-6xl font-extrabold font-[Orbitron] tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-cyan-300 to-fuchsia-400">
-                      {activeTransfer.code}
+                {/* Code + QR Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center bg-[#F5F5F7] rounded-2xl p-5 border border-[#D2D2D7]/60">
+                  <div className="sm:col-span-7 space-y-4">
+                    <div>
+                      <p className="text-[12px] font-medium text-[#6E6E73] uppercase tracking-wider">
+                        6-Digit Retrieval Code
+                      </p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span
+                          data-testid="generated-code"
+                          className="text-[36px] sm:text-[42px] font-semibold tracking-[0.14em] font-mono text-[#1D1D1F]"
+                        >
+                          {activeTransfer.code}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copyText(activeTransfer.code, "code")}
+                          className="px-3.5 py-2 rounded-lg bg-white border border-[#D2D2D7] hover:bg-[#E8E8ED]/50 text-[12px] font-semibold text-[#1D1D1F] flex items-center gap-1.5 transition-colors"
+                        >
+                          {copiedKey === "code" ? (
+                            <>
+                              <Check size={14} className="text-emerald-600" /> Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={14} /> Copy Code
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-[#6E6E73] mt-1">
+                        Short 6-digit codes are for quick convenience. For stronger protection, share the tokenized link or QR below.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <p className="text-[12px] font-medium text-[#6E6E73]">
+                        Direct Retrieval Link
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          readOnly
+                          value={activeTransfer.shareUrl}
+                          aria-label="Direct retrieval link"
+                          className="w-full px-3 py-2 rounded-lg bg-white border border-[#D2D2D7] text-[12px] text-[#1D1D1F] font-mono truncate"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => copyText(activeTransfer.shareUrl, "link")}
+                          className="px-3.5 py-2 rounded-lg bg-[#0066CC] hover:bg-[#0055B3] text-white text-[12px] font-semibold shrink-0 flex items-center gap-1.5 transition-colors"
+                        >
+                          {copiedKey === "link" ? (
+                            <>
+                              <Check size={14} /> Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={14} /> Copy Link
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* QR Code */}
+                  <div className="sm:col-span-5 flex flex-col items-center justify-center bg-white p-4 rounded-xl border border-[#D2D2D7]/70">
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=148x148&margin=6&data=${encodeURIComponent(
+                        activeTransfer.shareUrl
+                      )}`}
+                      alt={`QR code for retrieval code ${activeTransfer.code}`}
+                      className="w-32 h-32"
+                    />
+                    <span className="text-[11px] font-medium text-[#6E6E73] mt-2 flex items-center gap-1">
+                      <QrCode size={12} /> Scan with camera to receive
                     </span>
-                    <button
-                      onClick={() => copyToClipboard(activeTransfer.code, "code")}
-                      className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5 transition"
-                    >
-                      {copiedField === "code" ? <Check size={15} className="text-emerald-400" /> : <Copy size={15} />}
-                      {copiedField === "code" ? "Copied!" : "Copy Code"}
-                    </button>
                   </div>
                 </div>
 
-                {/* Direct Link Copy */}
-                <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-2">
-                  <div className="truncate text-xs text-gray-300 font-mono">{activeTransfer.shareUrl}</div>
-                  <button
-                    onClick={() => copyToClipboard(activeTransfer.shareUrl, "link")}
-                    className="px-3 py-1.5 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold shrink-0 flex items-center gap-1"
-                  >
-                    {copiedField === "link" ? <Check size={13} /> : <Copy size={13} />}
-                    {copiedField === "link" ? "Link Copied" : "Copy Direct Link"}
-                  </button>
-                </div>
+                {/* Exact Server Expiry & Revoke Action */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-[12px] text-[#6E6E73]">
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-[#6E6E73] shrink-0" />
+                    <span>
+                      {activeTransfer.fileCount} file(s) ({formatBytes(activeTransfer.totalBytes)}) · Expires{" "}
+                      <strong className="text-[#1D1D1F]">
+                        {formatExpiryDate(activeTransfer.expiresAt)}
+                      </strong>
+                    </span>
+                  </div>
 
-                {/* File summary */}
-                <div className="text-xs text-gray-400">
-                  📦 <strong>{activeTransfer.fileNames.join(", ")}</strong> ({activeTransfer.totalSizeMB} MB)
-                </div>
-
-                {/* Viral Share Actions */}
-                <div className="flex flex-wrap gap-3 pt-2">
-                  <a
-                    href={`https://wa.me/?text=${encodeURIComponent(
-                      `Here is your file on Fylshare! Enter 6-digit code *${activeTransfer.code}* or click to download directly: ${activeTransfer.shareUrl}`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2.5 rounded-xl bg-[#25D366]/20 hover:bg-[#25D366]/30 border border-[#25D366]/40 text-[#25D366] text-xs font-bold flex items-center gap-2 transition"
-                  >
-                    <Share2 size={14} /> Share on WhatsApp
-                  </a>
-                  <button
-                    onClick={() => setActiveTransfer(null)}
-                    className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-200 text-xs font-semibold transition"
-                  >
-                    + Upload More Files
-                  </button>
+                  {activeTransfer.revokeToken && (
+                    <button
+                      type="button"
+                      onClick={() => handleRevokeServerTransfer(activeTransfer)}
+                      disabled={revokingCode === activeTransfer.code}
+                      className="text-red-600 hover:text-red-700 font-medium flex items-center gap-1 self-start sm:self-auto"
+                    >
+                      <Trash2 size={13} />
+                      {revokingCode === activeTransfer.code
+                        ? "Deleting stored files..."
+                        : "Revoke transfer & delete stored files"}
+                    </button>
+                  )}
                 </div>
               </div>
-
-              {/* Instant QR Code for Lab PC -> Phone Scan */}
-              <div className="bg-white p-4 rounded-2xl text-center shrink-0 shadow-xl">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
-                    activeTransfer.shareUrl
-                  )}`}
-                  alt={`QR Code for ${activeTransfer.code}`}
-                  className="w-36 h-36 mx-auto"
-                />
-                <p className="text-[11px] font-bold text-black mt-2 flex items-center justify-center gap-1">
-                  <QrCode size={13} /> Scan with Phone to Download
-                </p>
-              </div>
-            </div>
-
-            {/* Free Habit Loop: Pitch Free Workspace Box for recurring usage */}
-            <div className="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2 text-xs text-cyan-300">
-                <FolderPlus size={15} />
-                <span>Need a permanent shared space? Create a PIN-protected Workspace Box for free.</span>
-              </div>
-              <Link
-                to="/workspace"
-                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold shrink-0 transition"
-              >
-                Open Workspace Box →
-              </Link>
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="glass-panel p-6 sm:p-10 rounded-3xl shadow-[0_0_30px_rgba(255,255,255,0.05)] border border-white/10 max-w-3xl mx-auto space-y-6"
-          >
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-fuchsia-500/10 border border-fuchsia-500/30 text-fuchsia-300 text-xs font-semibold">
-                <Zap size={13} /> Instant • Encrypted • Up to 1GB Free
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white font-[Orbitron]">
-                Upload Your File
-              </h1>
-              <p className="text-gray-400 text-sm">
-                Share anything across devices in seconds with a 6-digit code or QR scan. No account needed.
-              </p>
-            </div>
-
-            <input
-              type="text"
-              placeholder="Enter your name"
-              className="w-full p-3.5 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 transition text-white text-center backdrop-blur-sm"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              aria-label="Enter your name"
-            />
-
-            {/* Dropzone */}
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center transition cursor-pointer ${
-                isDragActive
-                  ? "border-fuchsia-500 bg-fuchsia-500/10"
-                  : "border-white/20 bg-white/[0.03] hover:bg-white/[0.07] hover:border-fuchsia-400/50"
-              }`}
-            >
-              <label htmlFor="file-upload" className="sr-only">
-                Upload files
-              </label>
-              <input {...getInputProps({ id: "file-upload", "aria-label": "File Upload Dropzone" })} />
-              <div className="flex flex-col items-center justify-center space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-fuchsia-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center text-fuchsia-300">
-                  <UploadCloud size={32} />
+            ) : (
+              <div className="space-y-5">
+                <div className="flex items-baseline justify-between">
+                  <h2 className="text-[19px] font-semibold text-[#1D1D1F]">
+                    Send Files
+                  </h2>
+                  <span className="text-[12px] text-[#6E6E73]">
+                    Up to 10 files · 1 GB max
+                  </span>
                 </div>
-                <p className="text-base font-semibold text-white">
-                  Drag &amp; drop files here, or <span className="text-fuchsia-400 underline">click to browse</span>
-                </p>
-                <p className="text-xs text-gray-400">
-                  Any file type — Max total 1GB
-                </p>
 
+                {/* Dropzone */}
+                <div
+                  {...getRootProps()}
+                  className={`rounded-2xl border border-dashed p-7 sm:p-9 text-center transition-colors cursor-pointer ${
+                    isDragActive
+                      ? "border-[#0066CC] bg-[#0066CC]/[0.04]"
+                      : "border-[#D2D2D7] bg-[#F5F5F7]/70 hover:bg-[#F5F5F7] hover:border-[#6E6E73]"
+                  }`}
+                >
+                  <label htmlFor="file-upload-input" className="sr-only">
+                    Select files to upload
+                  </label>
+                  <input
+                    {...getInputProps({
+                      id: "file-upload-input",
+                      "aria-label": "Select files to upload",
+                    })}
+                  />
+                  <div className="w-11 h-11 rounded-full bg-white border border-[#D2D2D7] flex items-center justify-center mx-auto mb-3 text-[#0066CC] shadow-sm">
+                    <Upload size={20} />
+                  </div>
+                  <p className="text-[15px] font-medium text-[#1D1D1F]">
+                    Drag and drop files here, or{" "}
+                    <span className="text-[#0066CC] underline">browse</span>
+                  </p>
+                  <p className="text-[12px] text-[#6E6E73] mt-1.5 max-w-md mx-auto leading-relaxed">
+                    Supported: PDF, Office docs, images, audio/video, ZIP/7Z/TAR archives, CAD/design, and source code. Raw executables (.exe, .bat, .msi, .apk, .dmg) are blocked.
+                  </p>
+                </div>
+
+                {/* Selected Files List */}
                 {files.length > 0 && (
-                  <div className="w-full max-w-md mt-4 p-4 rounded-xl bg-black/50 border border-emerald-500/30 text-left space-y-2">
-                    <div className="flex justify-between items-center text-xs text-emerald-400 font-bold">
-                      <span>{files.length} file(s) selected</span>
+                  <div className="rounded-xl border border-[#D2D2D7] bg-[#F5F5F7]/50 p-4 space-y-2.5">
+                    <div className="flex items-center justify-between text-[12px] font-medium text-[#6E6E73] pb-1 border-b border-[#D2D2D7]/60">
                       <span>
-                        Total: {(files.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(2)} MB
+                        {files.length} of {MAX_FILES} files selected
+                      </span>
+                      <span>
+                        {formatBytes(totalSelectedBytes)} / 1 GB
                       </span>
                     </div>
-                    <ul className="text-xs text-gray-200 space-y-1 max-h-28 overflow-y-auto">
-                      {files.map((file, index) => (
-                        <li key={index} className="truncate">
-                          ✅ {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                    <ul className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                      {files.map((file, idx) => (
+                        <li
+                          key={`${file.name}-${idx}`}
+                          className="flex items-center justify-between gap-2 bg-white px-3 py-2 rounded-lg border border-[#D2D2D7]/60 text-[13px]"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <FileText size={15} className="text-[#6E6E73] shrink-0" />
+                            <span className="truncate text-[#1D1D1F] font-medium">
+                              {file.name}
+                            </span>
+                            <span className="text-[11px] text-[#6E6E73] shrink-0">
+                              ({formatBytes(file.size)})
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeSelectedFile(idx)}
+                            disabled={
+                              uploadState === "uploading" ||
+                              uploadState === "processing"
+                            }
+                            className="text-[#6E6E73] hover:text-red-600 p-1 rounded"
+                            aria-label={`Remove ${file.name}`}
+                          >
+                            <X size={14} />
+                          </button>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
-              </div>
-            </div>
 
-            <button
-              onClick={handleSubmit}
-              className="w-full py-4 bg-gradient-to-r from-fuchsia-600 to-cyan-600 hover:from-fuchsia-500 hover:to-cyan-500 text-white rounded-xl transition font-bold text-base shadow-lg shadow-fuchsia-500/20"
-            >
-              Upload Now
-            </button>
+                {/* Optional Transfer Label */}
+                <div>
+                  <label
+                    htmlFor="transfer-label-input"
+                    className="block text-[13px] font-medium text-[#1D1D1F] mb-1"
+                  >
+                    Transfer label{" "}
+                    <span className="text-[#6E6E73] font-normal">(optional)</span>
+                  </label>
+                  <input
+                    id="transfer-label-input"
+                    type="text"
+                    maxLength={80}
+                    placeholder="e.g., Q4 Slides, Architecture Drafts"
+                    value={label}
+                    onChange={(e) => setLabel(e.target.value)}
+                    disabled={
+                      uploadState === "uploading" || uploadState === "processing"
+                    }
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#D2D2D7] text-[14px] text-[#1D1D1F] placeholder-[#6E6E73]/70 focus:border-[#0066CC]"
+                  />
+                  <p className="text-[11px] text-[#6E6E73] mt-1">
+                    Visible to anyone with your retrieval code. Avoid sensitive personal information in the label.
+                  </p>
+                </div>
 
-            <p className="text-[11px] text-gray-500 text-center leading-relaxed">
-              By uploading, you confirm you have the right to share these files and agree to our{" "}
-              <Link to="/terms" className="text-gray-400 underline hover:text-white">
-                Terms &amp; Acceptable Use Policy
-              </Link>{" "}
-              and{" "}
-              <Link to="/privacy" className="text-gray-400 underline hover:text-white">
-                Privacy Policy
-              </Link>
-              . Files auto-expire to protect your privacy.
-            </p>
-          </motion.div>
-        )}
+                {/* Validation / Error Banner */}
+                {uploadErrorMsg && (
+                  <div
+                    role="alert"
+                    className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-[13px]"
+                  >
+                    <ShieldAlert size={16} className="shrink-0 mt-0.5 text-red-600" />
+                    <div className="flex-1">{uploadErrorMsg}</div>
+                  </div>
+                )}
 
-        {/* Recent Uploads Saved on This Device (Prevents Lost Codes!) */}
-        {recentTransfers.length > 0 && (
-          <div className="max-w-3xl mx-auto mt-6 glass-panel p-5 rounded-2xl border border-white/10">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                📌 Your Recent Transfers on This Device (Click to view QR &amp; Code anytime)
-              </span>
-              <button
-                onClick={() => {
-                  localStorage.removeItem("fylshare_recent_transfers");
-                  setRecentTransfers([]);
-                }}
-                className="text-xs text-gray-500 hover:text-red-400 flex items-center gap-1"
-              >
-                <Trash2 size={12} /> Clear
-              </button>
-            </div>
-            <div className="space-y-2">
-              {recentTransfers.map((item) => (
-                <div
-                  key={item.code}
-                  className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-white/5 border border-white/5 text-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="px-2.5 py-1 rounded-lg bg-fuchsia-500/20 border border-fuchsia-500/40 text-fuchsia-300 font-mono font-bold text-sm">
-                      {item.code}
-                    </span>
-                    <div>
-                      <span className="text-white font-medium">{item.fileNames.join(", ")}</span>
-                      <span className="text-gray-500 ml-2">({item.totalSizeMB} MB • {item.timestamp})</span>
+                {/* Real Upload Progress State */}
+                {(uploadState === "uploading" || uploadState === "processing") && (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className="p-4 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7] space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between text-[13px] font-medium text-[#1D1D1F]">
+                      <span>
+                        {uploadState === "uploading"
+                          ? `Uploading bytes (${bytesUploadedPct}%)`
+                          : "Bytes sent — verifying & storing on server..."}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCancelUpload}
+                        className="text-[12px] font-medium text-red-600 hover:underline"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <div className="w-full h-2 bg-[#D2D2D7] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#0066CC] transition-all duration-150 rounded-full"
+                        style={{ width: `${bytesUploadedPct}%` }}
+                      />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setActiveTransfer(item)}
-                      className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold"
-                    >
-                      Show QR &amp; Code
-                    </button>
-                    <Link
-                      to={`/search?code=${item.code}`}
-                      className="px-3 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 font-semibold"
-                    >
-                      Open
-                    </Link>
-                  </div>
+                )}
+
+                {/* Primary Action Button */}
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleUploadSubmit}
+                    disabled={
+                      uploadState === "uploading" || uploadState === "processing"
+                    }
+                    className="w-full py-3 px-5 rounded-xl bg-[#0066CC] hover:bg-[#0055B3] disabled:opacity-50 text-white font-semibold text-[15px] transition-colors flex items-center justify-center gap-2"
+                  >
+                    {uploadState === "error" || uploadState === "cancelled" ? (
+                      <>
+                        <RefreshCw size={16} /> Retry Upload
+                      </>
+                    ) : (
+                      "Upload & Generate Code"
+                    )}
+                  </button>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
 
-      {/* SEO Content Section: Features & FAQ */}
-      <div className="max-w-7xl mx-auto mt-20 mb-12 space-y-16">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400 font-[Orbitron]">
-            Why Use Fylshare?
-          </h2>
+                {/* Proportionate Contextual Notice */}
+                <p className="text-[11px] text-[#6E6E73] leading-relaxed">
+                  Only upload content you own or have the legal right to share. Standard transfers expire automatically after 48 hours. By uploading, you agree to our{" "}
+                  <Link to="/terms" className="text-[#0066CC] hover:underline">
+                    Terms &amp; Acceptable Use Policy
+                  </Link>{" "}
+                  and{" "}
+                  <Link to="/privacy" className="text-[#0066CC] hover:underline">
+                    Privacy Notice
+                  </Link>
+                  .
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* RECEIVE & RECENT PANEL (5 columns on desktop) */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* Receive by Code Card */}
+            <div className="apple-card rounded-2xl p-6 sm:p-7 space-y-4">
+              <div>
+                <h2 className="text-[19px] font-semibold text-[#1D1D1F]">
+                  Receive Files
+                </h2>
+                <p className="text-[13px] text-[#6E6E73] mt-0.5">
+                  Have a 6-digit retrieval code? Enter it to view and download.
+                </p>
+              </div>
+
+              <form onSubmit={handleQuickReceive} className="space-y-3">
+                <div>
+                  <label htmlFor="quick-code-input" className="sr-only">
+                    6-digit retrieval code
+                  </label>
+                  <input
+                    id="quick-code-input"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    placeholder="6-digit code"
+                    value={quickCode}
+                    onChange={(e) =>
+                      setQuickCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    }
+                    className="w-full px-4 py-3 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7] text-[18px] font-mono tracking-[0.2em] text-center text-[#1D1D1F] placeholder-[#6E6E73]/60 focus:bg-white focus:border-[#0066CC]"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#1D1D1F] hover:bg-black text-white font-semibold text-[14px] transition-colors flex items-center justify-center gap-1.5"
+                >
+                  Access Files <ArrowRight size={15} />
+                </button>
+              </form>
+            </div>
+
+            {/* Compact Privacy & Operator Visibility Summary */}
+            <div className="apple-surface rounded-2xl p-5 space-y-2.5 text-[12px] text-[#6E6E73]">
+              <div className="flex items-center gap-2 text-[#1D1D1F] font-semibold text-[13px]">
+                <Info size={15} className="text-[#0066CC] shrink-0" />
+                <span>How your transfer is handled</span>
+              </div>
+              <ul className="space-y-1.5 leading-relaxed list-disc pl-4">
+                <li>
+                  <strong>Storage &amp; Expiry:</strong> Files are stored privately on Google Cloud Storage and automatically deleted 48 hours after upload.
+                </li>
+                <li>
+                  <strong>Metadata:</strong> We store file sizes, timestamps, optional transfer labels, and approximate country (derived from network headers without GPS).
+                </li>
+                <li>
+                  <strong>Operator Access:</strong> Fylshare encrypts data in transit (TLS 1.3) and at rest, but is not a zero-knowledge service. Authorized administrators may review reported transfers for abuse moderation.
+                </li>
+              </ul>
+            </div>
+
+            {/* Recent Transfers on This Device */}
+            {recentTransfers.length > 0 && (
+              <div className="apple-card rounded-2xl p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[14px] font-semibold text-[#1D1D1F]">
+                    Recent transfers on this device
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => handleClearLocalDeviceHistory(null)}
+                    className="text-[12px] text-[#6E6E73] hover:text-[#1D1D1F]"
+                  >
+                    Clear local list
+                  </button>
+                </div>
+
+                <p className="text-[11px] text-[#6E6E73] leading-relaxed">
+                  Saved in this browser’s local storage only. Clearing this list from your browser does not delete files stored on Fylshare servers.
+                </p>
+
+                <ul className="space-y-2">
+                  {recentTransfers.map((item) => (
+                    <li
+                      key={item.code}
+                      className="p-3 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7]/70 text-[12px] space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="px-2 py-0.5 rounded bg-white border border-[#D2D2D7] font-mono font-semibold text-[#1D1D1F]">
+                            {item.code}
+                          </span>
+                          <span className="truncate font-medium text-[#1D1D1F]">
+                            {item.label}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-[#6E6E73] shrink-0">
+                          {item.fileCount} file(s)
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#D2D2D7]/50 text-[11px]">
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setActiveTransfer(item)}
+                            className="text-[#0066CC] font-medium hover:underline"
+                          >
+                            View QR &amp; Code
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleClearLocalDeviceHistory(item.code)}
+                            className="text-[#6E6E73] hover:text-[#1D1D1F]"
+                          >
+                            Remove from browser
+                          </button>
+                        </div>
+
+                        {item.revokeToken && (
+                          <button
+                            type="button"
+                            onClick={() => handleRevokeServerTransfer(item)}
+                            disabled={revokingCode === item.code}
+                            className="text-red-600 hover:underline font-medium"
+                          >
+                            {revokingCode === item.code
+                              ? "Deleting..."
+                              : "Delete server files"}
+                          </button>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Secondary Workflow & Support Section */}
+      <section className="border-t border-[#D2D2D7]/70 bg-[#F5F5F7] py-16">
+        <div className="max-w-[1140px] mx-auto px-4 sm:px-6 space-y-12">
+          <div className="max-w-xl">
+            <h2 className="text-[24px] sm:text-[28px] font-semibold text-[#1D1D1F] tracking-tight">
+              Designed for clarity and predictable retention.
+            </h2>
+            <p className="text-[15px] text-[#6E6E73] mt-2 leading-relaxed">
+              Move documents, archives, and media across devices without creating accounts or leaving files online indefinitely.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
-              <div className="w-12 h-12 mx-auto bg-fuchsia-500/20 rounded-full flex items-center justify-center mb-4 text-fuchsia-300">
-                <Zap size={22} />
-              </div>
-              <h3 className="text-xl font-bold mb-2">Lightning Fast</h3>
-              <p className="text-gray-400 text-sm">
-                Upload files instantly without any registration. Just drag, drop, and share across any device.
+            <div className="bg-white rounded-2xl p-6 border border-[#D2D2D7]/70 space-y-2">
+              <h3 className="text-[16px] font-semibold text-[#1D1D1F]">
+                1. Validated Upload
+              </h3>
+              <p className="text-[13px] text-[#6E6E73] leading-relaxed">
+                Files up to 1 GB are checked against our supported-type policy and binary header rules before being written to private cloud storage.
               </p>
             </div>
-            <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
-              <div className="w-12 h-12 mx-auto bg-cyan-500/20 rounded-full flex items-center justify-center mb-4 text-cyan-300">
-                <QrCode size={22} />
-              </div>
-              <h3 className="text-xl font-bold mb-2">6-Digit Code &amp; Instant QR</h3>
-              <p className="text-gray-400 text-sm">
-                Retrieve your files anywhere using a simple 6-digit code or instant phone QR scan. No app required.
+
+            <div className="bg-white rounded-2xl p-6 border border-[#D2D2D7]/70 space-y-2">
+              <h3 className="text-[16px] font-semibold text-[#1D1D1F]">
+                2. Code or Tokenized QR
+              </h3>
+              <p className="text-[13px] text-[#6E6E73] leading-relaxed">
+                Share a 6-digit code for quick manual entry on another computer, or scan the QR code containing a high-entropy retrieval token.
               </p>
             </div>
-            <div className="glass-panel p-6 rounded-xl hover:bg-white/5 transition border border-white/5">
-              <div className="w-12 h-12 mx-auto bg-purple-500/20 rounded-full flex items-center justify-center mb-4 text-purple-300">
-                <Lock size={22} />
-              </div>
-              <h3 className="text-xl font-bold mb-2">AES-256 Encrypted</h3>
-              <p className="text-gray-400 text-sm">
-                Protected in transit via TLS 1.3 and encrypted at rest via AES-256 for complete privacy.
+
+            <div className="bg-white rounded-2xl p-6 border border-[#D2D2D7]/70 space-y-2">
+              <h3 className="text-[16px] font-semibold text-[#1D1D1F]">
+                3. Automatic 48-Hour Expiry
+              </h3>
+              <p className="text-[13px] text-[#6E6E73] leading-relaxed">
+                Download links stop working as soon as a transfer expires. Stored file objects are automatically purged, or you can revoke them immediately.
               </p>
             </div>
           </div>
         </div>
-
-        {/* Universal Compatibility */}
-        <div className="glass-panel p-8 rounded-2xl border border-white/10">
-          <div className="text-left mb-6">
-            <h2 className="text-2xl font-bold text-white font-[Orbitron] mb-2">Universal File Compatibility</h2>
-            <p className="text-gray-300 text-sm">
-              Works on iPhone, Android, Windows, Mac, and Linux browsers with zero app installation.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {["PDF", "DOCX", "PPTX", "JPG", "PNG", "MP4", "ZIP", "HTML/CSS/JS", "PY", "IPYNB", "CAD/DWG", "PSD", "CSV"].map((fmt) => (
-              <span key={fmt} className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-300 border border-white/10">
-                {fmt}
-              </span>
-            ))}
-            <span className="px-3 py-1 bg-white/5 rounded-full text-xs italic text-gray-500 border border-white/5">
-              + standard document &amp; media formats up to 1GB
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Latest from Blog Section */}
-      <div className="max-w-7xl mx-auto mb-20 px-4">
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <h2 className="text-3xl font-bold font-[Orbitron] text-white">Latest from our Blog</h2>
-            <p className="text-gray-400 mt-2">Guides on fast file transfers, campus workflows, and security.</p>
-          </div>
-          <Link to="/blog" className="hidden md:block text-fuchsia-400 hover:text-fuchsia-300 font-bold transition">
-            View All Articles →
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link to="/blog" className="glass-panel p-6 rounded-xl border border-white/10 hover:bg-white/5 transition group">
-            <span className="text-xs font-bold text-fuchsia-400 mb-2 block">SECURITY</span>
-            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-fuchsia-300 transition">How to Share Large Files Securely</h3>
-            <p className="text-gray-400 text-sm line-clamp-3">
-              Learn why TLS 1.3 and AES-256 encryption are critical for protecting your digital assets and avoiding common security pitfalls.
-            </p>
-          </Link>
-          <Link to="/blog" className="glass-panel p-6 rounded-xl border border-white/10 hover:bg-white/5 transition group">
-            <span className="text-xs font-bold text-cyan-400 mb-2 block">PRIVACY</span>
-            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition">Why End-to-End Encryption Matters</h3>
-            <p className="text-gray-400 text-sm line-clamp-3">
-              Understand the technology behind AES-256 encryption and why anonymous file transfer is safer than account-based services.
-            </p>
-          </Link>
-          <Link to="/blog" className="glass-panel p-6 rounded-xl border border-white/10 hover:bg-white/5 transition group">
-            <span className="text-xs font-bold text-green-400 mb-2 block">GUIDE</span>
-            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-green-300 transition">The Benefits of Anonymous Sharing</h3>
-            <p className="text-gray-400 text-sm line-clamp-3">
-              Discover how reducing your metadata footprint protects your digital identity and improves workflow efficiency.
-            </p>
-          </Link>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

@@ -1,310 +1,544 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Search as SearchIcon, Eye, Download, Sparkles, FolderPlus, Share2, FileText, Code, Flag } from "lucide-react";
-import "@fortawesome/fontawesome-free/css/all.min.css";
+import {
+  Download,
+  Eye,
+  FileText,
+  Flag,
+  Clock,
+  AlertCircle,
+  RefreshCw,
+  ShieldAlert,
+  CheckCircle2,
+  X,
+} from "lucide-react";
 import Toast from "./Toast";
 import config from "./config";
+import { trackEvent } from "./analytics";
+
+function formatBytes(bytes) {
+  const n = Number(bytes) || 0;
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+}
 
 export default function Search() {
   const [searchParams] = useSearchParams();
   const [code, setCode] = useState("");
+  const [activeIdentifier, setActiveIdentifier] = useState("");
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [statusState, setStatusState] = useState("idle"); // "idle" | "loading" | "success" | "not_found" | "rate_limited" | "error"
+  const [errorMessage, setErrorMessage] = useState("");
   const [toast, setToast] = useState(null);
-  const [reported, setReported] = useState(false);
 
-  const handleReportAbuse = async () => {
-    if (!code || reported) return;
-    const reason = window.prompt(
-      "Report Abuse / Prohibited Content (e.g., copyright infringement, malware, privacy violation, illegal content):"
-    );
-    if (!reason || !reason.trim()) return;
-    try {
-      await fetch(`${config.API_BASE_URL}/api/report`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, reason: reason.trim() }),
-      });
-      setReported(true);
-      triggerToast("Report submitted. Our safety team will review and remove violating content.", "success");
-    } catch {
-      triggerToast("Report logged for review.", "info");
-    }
-  };
+  // Abuse Reporting Modal State
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportCategory, setReportCategory] = useState("copyright");
+  const [reportReason, setReportReason] = useState("");
+  const [reportContact, setReportContact] = useState("");
+  const [reportConfirmation, setReportConfirmation] = useState(null);
+  const [submittingReport, setSubmittingReport] = useState(false);
 
   const triggerToast = useCallback((message, type = "info") => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
+    setTimeout(() => setToast(null), 4000);
   }, []);
 
-  const fetchByCode = useCallback(
-    async (targetCode) => {
-      const cleaned = (targetCode || "").trim();
-      if (cleaned.length !== 6 || isNaN(cleaned)) {
+  const lookupTransfer = useCallback(async (identifierInput, isToken = false) => {
+    const cleaned = String(identifierInput || "").trim();
+    if (!isToken && (!/^\d{6}$/.test(cleaned))) {
+      setStatusState("error");
+      setErrorMessage("Please enter a valid 6-digit numerical retrieval code.");
+      setResult(null);
+      return;
+    }
+
+    setStatusState("loading");
+    setErrorMessage("");
+    setReportConfirmation(null);
+
+    try {
+      const endpoint = isToken
+        ? `${config.API_BASE_URL}/api/uploads/${encodeURIComponent(
+            cleaned
+          )}?token=${encodeURIComponent(cleaned)}`
+        : `${config.API_BASE_URL}/api/uploads/${encodeURIComponent(cleaned)}`;
+
+      const res = await fetch(endpoint);
+
+      if (res.status === 429) {
+        const data = await res.json().catch(() => ({}));
         setResult(null);
-        triggerToast("Enter a valid 6-digit code", "error");
+        setStatusState("rate_limited");
+        setErrorMessage(
+          data.message ||
+            "Too many lookup attempts from your network. Please wait a minute and try again."
+        );
         return;
       }
 
-      setLoading(true);
-      try {
-        const res = await fetch(`${config.API_BASE_URL}/api/uploads/${cleaned}`);
-        if (res.status === 404) {
-          setResult(null);
-          triggerToast("No file found for this code.", "warning");
-          return;
-        }
-
-        const data = await res.json();
-        setResult(data);
-        triggerToast("File package unlocked!", "success");
-      } catch (error) {
-        console.error(error);
-        triggerToast("Error searching for file", "error");
-      } finally {
-        setLoading(false);
+      if (res.status === 404 || res.status === 410) {
+        setResult(null);
+        setStatusState("not_found");
+        setErrorMessage(
+          "No active transfer was found for this code. It may have expired after its 48-hour window, been revoked by the sender, or been mistyped."
+        );
+        return;
       }
-    },
-    [triggerToast]
-  );
 
-  // Auto-lookup when ?code=XXXXXX is present in URL (from QR scan or WhatsApp link)
-  useEffect(() => {
-    const urlCode = searchParams.get("code") || searchParams.get("q");
-    if (urlCode && /^\d{6}$/.test(urlCode.trim())) {
-      setCode(urlCode.trim());
-      fetchByCode(urlCode.trim());
+      if (!res.ok) {
+        throw new Error("Server error");
+      }
+
+      const data = await res.json();
+      setResult(data);
+      setActiveIdentifier(cleaned);
+      setStatusState("success");
+
+      trackEvent("retrieval_succeeded", {
+        file_count: data.fileCount || data.files?.length || 1,
+        transfer_type: "anonymous",
+        status: "available",
+      });
+    } catch {
+      setResult(null);
+      setStatusState("error");
+      setErrorMessage(
+        "Unable to reach the Fylshare retrieval service. Check your connection and try again."
+      );
     }
-  }, [searchParams, fetchByCode]);
+  }, []);
 
-  const handleView = (fileUrl) => {
-    window.open(fileUrl, "_blank", "noopener,noreferrer");
+  // Support ?token=... or ?code=... and scrub credentials from URL bar immediately to prevent referrer/history leakage
+  useEffect(() => {
+    const urlToken = searchParams.get("token");
+    const urlCode = searchParams.get("code") || searchParams.get("q");
+
+    if (urlToken && urlToken.trim().length >= 16) {
+      const cleanToken = urlToken.trim();
+      if (window.history?.replaceState) {
+        window.history.replaceState({}, "", "/search");
+      }
+      lookupTransfer(cleanToken, true);
+    } else if (urlCode && /^\d{6}$/.test(urlCode.trim())) {
+      const cleanCode = urlCode.trim();
+      setCode(cleanCode);
+      if (window.history?.replaceState) {
+        window.history.replaceState({}, "", "/search");
+      }
+      lookupTransfer(cleanCode, false);
+    }
+  }, [searchParams, lookupTransfer]);
+
+  const handleFileAction = async (fileObj, mode = "download") => {
+    try {
+      trackEvent("download_requested", {
+        transfer_type: "anonymous",
+        status: mode,
+      });
+
+      const downloadPath =
+        fileObj.downloadEndpoint ||
+        `/api/uploads/${encodeURIComponent(activeIdentifier || code)}/files/${
+          fileObj.index || 0
+        }/download`;
+
+      const res = await fetch(
+        `${config.API_BASE_URL}${downloadPath}?json=true&mode=${mode}`
+      );
+
+      if (res.status === 410 || res.status === 404) {
+        setResult(null);
+        setStatusState("not_found");
+        setErrorMessage("This transfer has expired and its files are no longer available.");
+        return;
+      }
+
+      if (!res.ok) {
+        triggerToast("Could not authorize file download. Please retry.", "error");
+        return;
+      }
+
+      const data = await res.json();
+      if (!data.downloadUrl) {
+        triggerToast("Download URL unavailable.", "error");
+        return;
+      }
+
+      if (mode === "inline" && !data.forceAttachment) {
+        window.open(data.downloadUrl, "_blank", "noopener,noreferrer");
+      } else {
+        const a = document.createElement("a");
+        a.href = data.downloadUrl;
+        a.download = data.fileName || fileObj.name || "download";
+        a.rel = "noopener noreferrer";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    } catch {
+      triggerToast("Network error while requesting file download.", "error");
+    }
   };
 
-  const handleDownload = (fileUrl, fileName) => {
-    const a = document.createElement("a");
-    a.href = fileUrl;
-    a.download = fileName;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.click();
+  const handleSubmitReport = async (e) => {
+    e.preventDefault();
+    if (!reportReason.trim() || reportReason.trim().length < 5) return;
+
+    setSubmittingReport(true);
+    try {
+      const res = await fetch(`${config.API_BASE_URL}/api/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: /^\d{6}$/.test(activeIdentifier) ? activeIdentifier : code,
+          token: activeIdentifier.length >= 16 ? activeIdentifier : undefined,
+          category: reportCategory,
+          reason: reportReason.trim(),
+          reporterContact: reportContact.trim() || undefined,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setReportConfirmation(data.reportId || "SUBMITTED");
+        setReportReason("");
+      } else {
+        triggerToast(data.error || "Could not submit report.", "error");
+      }
+    } catch {
+      triggerToast("Network error while submitting report.", "error");
+    } finally {
+      setSubmittingReport(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-white font-[Poppins] px-4 pt-28 pb-20 relative">
-      {/* Toast */}
-      <div className="fixed bottom-6 left-6 z-50">
-        <AnimatePresence>
-          {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-        </AnimatePresence>
-      </div>
-
-      <div className="max-w-3xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold mb-3">
-          ⚡ Instant 6-Digit File Retrieval — 100% Free
-        </div>
-        <h1 className="text-4xl sm:text-5xl font-bold text-white mb-3 font-[Orbitron] drop-shadow-lg">
-          Retrieve Your Files
-        </h1>
-        <p className="text-gray-400 mb-8 text-sm sm:text-base">
-          Enter your 6-digit transfer code below to preview or download your files immediately.
-        </p>
-
-        {/* Search Input + Button */}
-        <div className="max-w-lg mx-auto mb-10 flex items-center gap-2 bg-white/5 p-2 rounded-2xl border border-white/15 focus-within:border-fuchsia-400 transition shadow-lg">
-          <div className="pl-3 text-gray-400">
-            <SearchIcon size={20} />
-          </div>
-          <input
-            type="text"
-            maxLength={6}
-            placeholder="Enter 6-digit code"
-            className="w-full py-3 px-2 bg-transparent focus:outline-none text-xl font-mono tracking-widest text-white placeholder-gray-500"
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-            onKeyDown={(e) => e.key === "Enter" && fetchByCode(code)}
-            aria-label="Enter 6-digit code"
+    <div className="bg-[#FFFFFF] text-[#1D1D1F] min-h-[75vh]">
+      {toast && (
+        <div className="fixed top-20 right-4 z-50">
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
           />
-          <button
-            onClick={() => fetchByCode(code)}
-            disabled={loading}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-cyan-600 hover:from-fuchsia-500 hover:to-cyan-500 text-white font-bold text-sm shrink-0 transition"
-          >
-            {loading ? "Finding..." : "Get Files"}
-          </button>
+        </div>
+      )}
+
+      <div className="max-w-[760px] mx-auto px-4 sm:px-6 pt-12 pb-20">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-[32px] sm:text-[40px] font-semibold tracking-tight text-[#1D1D1F] mb-2">
+            Receive Files
+          </h1>
+          <p className="text-[15px] text-[#6E6E73]">
+            Enter the 6-digit retrieval code shared by the sender.
+          </p>
         </div>
 
-        {/* Result Card */}
-        {result ? (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6 text-left"
+        {/* Code Input Card */}
+        <div className="apple-card rounded-2xl p-6 sm:p-8 mb-8">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              lookupTransfer(code, false);
+            }}
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
           >
-            <div className="glass-panel rounded-3xl shadow-2xl p-6 sm:p-8 border border-emerald-500/30 bg-[#0d1117]/90">
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-white/10 pb-4">
-                <div>
-                  <span className="text-xs text-gray-400 uppercase tracking-wider">Uploaded By</span>
-                  <h2 className="text-2xl font-bold text-white font-[Orbitron]">{result.name || "Anonymous"}</h2>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="bg-emerald-500/20 text-emerald-300 px-3.5 py-1 rounded-full text-xs font-bold border border-emerald-500/30">
-                    ✓ {result.files?.length || 0} FILE(S) READY
-                  </span>
-                </div>
-              </div>
+            <div className="flex-1">
+              <label htmlFor="retrieval-code-input" className="sr-only">
+                6-digit retrieval code
+              </label>
+              <input
+                id="retrieval-code-input"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                placeholder="Enter 6-digit code"
+                value={code}
+                onChange={(e) =>
+                  setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+                aria-label="Enter 6-digit code"
+                className="w-full px-4 py-3.5 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7] text-[20px] font-mono tracking-[0.22em] text-center sm:text-left text-[#1D1D1F] placeholder-[#6E6E73]/60 focus:bg-white focus:border-[#0066CC]"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={statusState === "loading"}
+              className="py-3.5 px-7 rounded-xl bg-[#0066CC] hover:bg-[#0055B3] disabled:opacity-50 text-white font-semibold text-[15px] transition-colors shrink-0"
+            >
+              {statusState === "loading" ? "Checking..." : "Continue"}
+            </button>
+          </form>
 
-              <ul className="space-y-3">
-                {result.files?.map((f, index) => {
-                  const isCode = /\.(js|py|html|css|cpp|c|java|json)$/i.test(f.name || "");
-                  return (
-                    <li
-                      key={index}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-fuchsia-500/40 transition-all"
-                    >
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="bg-fuchsia-500/20 text-fuchsia-300 p-3 rounded-xl shrink-0">
-                          {isCode ? <Code size={20} /> : <FileText size={20} />}
-                        </div>
-                        <div className="overflow-hidden">
-                          <span className="text-white font-semibold text-base block truncate">{f.name}</span>
-                          {f.size && (
-                            <span className="text-xs text-gray-400">
-                              {(f.size / 1024 / 1024).toFixed(2)} MB
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2.5 shrink-0">
-                        <button
-                          onClick={() => handleView(f.url)}
-                          className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-blue-600 text-white text-xs font-bold flex items-center gap-1.5 transition"
-                          title="Preview in browser"
-                        >
-                          <Eye size={15} /> View
-                        </button>
-                        <button
-                          onClick={() => handleDownload(f.url, f.name)}
-                          className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold flex items-center gap-1.5 transition shadow-lg shadow-emerald-500/20"
-                          title="Download file"
-                        >
-                          <Download size={15} /> Download
-                        </button>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              {/* Viral Re-Share + Report Abuse Bar */}
-              <div className="mt-6 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(
-                    `Download "${result.files?.map((f) => f.name).join(", ")}" on Fylshare using code ${code}: ${window.location.origin}/search?code=${code}`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#25D366] hover:underline font-bold flex items-center gap-1.5"
-                >
-                  <Share2 size={14} /> Share on WhatsApp
-                </a>
-
-                <button
-                  onClick={handleReportAbuse}
-                  disabled={reported}
-                  className="text-gray-500 hover:text-red-400 transition flex items-center gap-1.5"
-                  title="Report copyright infringement, malware, or prohibited content"
-                >
-                  <Flag size={13} /> {reported ? "Reported to Safety Team" : "Report Abuse"}
-                </button>
+          {/* Status States: Not Found / Expired / Rate Limited / Error */}
+          {(statusState === "not_found" ||
+            statusState === "rate_limited" ||
+            statusState === "error") && (
+            <div
+              role="alert"
+              className="mt-5 p-4 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7] flex items-start gap-3 text-[13px]"
+            >
+              <AlertCircle
+                size={18}
+                className={
+                  statusState === "not_found"
+                    ? "text-[#6E6E73] shrink-0 mt-0.5"
+                    : "text-red-600 shrink-0 mt-0.5"
+                }
+              />
+              <div className="flex-1 space-y-2">
+                <p className="font-medium text-[#1D1D1F]">{errorMessage}</p>
+                {statusState === "error" && (
+                  <button
+                    type="button"
+                    onClick={() => lookupTransfer(activeIdentifier || code, activeIdentifier.length >= 16)}
+                    className="inline-flex items-center gap-1.5 text-[#0066CC] font-semibold hover:underline"
+                  >
+                    <RefreshCw size={13} /> Retry lookup
+                  </button>
+                )}
               </div>
             </div>
+          )}
+        </div>
 
-            {/* Free Habit Builder: Convert One-Time Downloader into a Daily User */}
-            <div className="p-6 rounded-2xl border border-fuchsia-500/30 bg-gradient-to-r from-fuchsia-950/40 via-[#120b1e] to-cyan-950/40 flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-fuchsia-400">
-                  <Sparkles size={13} /> WORKSPACE BOX
-                </div>
-                <h3 className="text-lg font-bold text-white">Need a Permanent PIN-Protected Cloud Box?</h3>
-                <p className="text-xs text-gray-300 max-w-xl">
-                  Store and organize multiple files in a private Workspace Box and access them from any device worldwide.
+        {/* Authorized Transfer Result Card */}
+        {statusState === "success" && result && (
+          <div className="apple-card rounded-2xl p-6 sm:p-8 space-y-6" aria-live="polite">
+            <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#D2D2D7]/70 pb-4">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6E6E73]">
+                  Transfer Package
                 </p>
+                <h2 className="text-[20px] font-semibold text-[#1D1D1F] mt-0.5">
+                  {result.name || "Untitled transfer"}
+                </h2>
+                {result.expiresAt && (
+                  <p className="text-[12px] text-[#6E6E73] flex items-center gap-1.5 mt-1">
+                    <Clock size={13} /> Expires{" "}
+                    {new Date(result.expiresAt).toLocaleString()}
+                  </p>
+                )}
               </div>
-              <div className="flex gap-2 shrink-0">
-                <Link
-                  to="/"
-                  className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition"
-                >
-                  Upload Files
-                </Link>
-                <Link
-                  to="/workspace"
-                  className="px-5 py-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-cyan-600 hover:from-fuchsia-500 hover:to-cyan-500 text-white font-bold text-xs transition shadow-lg"
-                >
-                  Create Workspace Box →
-                </Link>
-              </div>
+              <span className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[12px] font-semibold">
+                {result.files?.length || 0} file(s) available
+              </span>
             </div>
-          </motion.div>
-        ) : (
-          <div className="glass-panel max-w-xl mx-auto p-6 rounded-2xl border border-white/10 text-left">
-            <p className="text-xs text-gray-400 uppercase tracking-widest mb-4 font-bold">
-              Need to Send a File Instead?
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-gray-300">
-                Upload any file up to 1GB with zero registration and get an instant 6-digit code &amp; QR.
-              </p>
-              <Link
-                to="/"
-                className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold shrink-0 transition"
+
+            {result.scanStatus === "uninspectable_encrypted_archive" && (
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[12px] flex items-start gap-2.5">
+                <ShieldAlert size={16} className="shrink-0 mt-0.5 text-amber-700" />
+                <span>
+                  This transfer contains a password-protected archive whose internal contents cannot be inspected automatically. Only open archives from senders you trust.
+                </span>
+              </div>
+            )}
+
+            <ul className="space-y-3">
+              {result.files?.map((f, index) => (
+                <li
+                  key={f.fileId || index}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7]/70"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-white border border-[#D2D2D7] flex items-center justify-center text-[#1D1D1F] shrink-0">
+                      <FileText size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[14px] font-semibold text-[#1D1D1F] truncate">
+                        {f.name}
+                      </p>
+                      <p className="text-[12px] text-[#6E6E73]">
+                        {formatBytes(f.size)}
+                        {f.forceAttachment ? " · Attachment download only" : ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {!f.forceAttachment && (
+                      <button
+                        type="button"
+                        onClick={() => handleFileAction(f, "inline")}
+                        className="px-3.5 py-2 rounded-lg bg-white border border-[#D2D2D7] hover:bg-[#E8E8ED]/60 text-[#1D1D1F] text-[12px] font-semibold flex items-center gap-1.5 transition-colors"
+                      >
+                        <Eye size={14} /> Preview
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleFileAction(f, "download")}
+                      className="px-4 py-2 rounded-lg bg-[#0066CC] hover:bg-[#0055B3] text-white text-[12px] font-semibold flex items-center gap-1.5 transition-colors"
+                    >
+                      <Download size={14} /> Download
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className="pt-4 border-t border-[#D2D2D7]/70 flex flex-wrap items-center justify-between gap-3 text-[12px] text-[#6E6E73]">
+              <span>
+                Only open files from people you trust.
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(true)}
+                className="text-red-600 hover:underline font-medium flex items-center gap-1.5"
               >
-                Upload Now →
-              </Link>
+                <Flag size={13} /> Report Abuse or Prohibited Content
+              </button>
             </div>
           </div>
         )}
 
-        {/* How to Retrieve Info */}
-        <div className="mt-16 glass-panel p-8 rounded-2xl border border-white/10 text-left grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-fuchsia-500/20 text-fuchsia-300 flex items-center justify-center font-bold shrink-0">
-              1
-            </div>
+        {/* Secondary Guidance when Idle */}
+        {statusState === "idle" && (
+          <div className="apple-surface rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[13px] text-[#6E6E73]">
             <div>
-              <h3 className="text-sm font-bold text-white">Enter 6-Digit Code</h3>
-              <p className="text-gray-400 text-xs mt-1">
-                Type the 6-digit code or scan the QR code from the uploader's screen.
+              <p className="font-semibold text-[#1D1D1F]">Need to send files instead?</p>
+              <p className="mt-0.5">
+                Upload up to 1 GB and generate a 6-digit retrieval code in seconds.
               </p>
             </div>
+            <Link
+              to="/"
+              className="px-4 py-2 rounded-lg bg-white border border-[#D2D2D7] text-[#1D1D1F] font-semibold text-[12px] hover:bg-[#E8E8ED]/40 shrink-0"
+            >
+              Go to Send Files
+            </Link>
           </div>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold shrink-0">
-              2
+        )}
+      </div>
+
+      {/* Abuse Report Modal */}
+      {showReportModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="report-abuse-title"
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div className="bg-white border border-[#D2D2D7] rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#D2D2D7]/70 pb-3">
+              <h3
+                id="report-abuse-title"
+                className="text-[17px] font-semibold text-[#1D1D1F]"
+              >
+                Report Abuse or Prohibited Content
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(false)}
+                className="text-[#6E6E73] hover:text-[#1D1D1F] p-1"
+                aria-label="Close report dialog"
+              >
+                <X size={18} />
+              </button>
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-white">Preview or Download</h3>
-              <p className="text-gray-400 text-xs mt-1">
-                Open PDFs and images directly in your browser or download the original raw file.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold shrink-0">
-              <FolderPlus size={16} />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-white">Save to Workspace Box</h3>
-              <p className="text-gray-400 text-xs mt-1">
-                Use <Link to="/workspace" className="text-cyan-400 underline">My Box</Link> for free, permanent, PIN-locked folders.
-              </p>
-            </div>
+
+            {reportConfirmation ? (
+              <div className="space-y-3 py-2 text-[13px]">
+                <div className="flex items-center gap-2 text-emerald-700 font-semibold">
+                  <CheckCircle2 size={18} /> Report submitted
+                </div>
+                <p className="text-[#6E6E73] leading-relaxed">
+                  Reference ID: <code className="font-mono text-[#1D1D1F]">{reportConfirmation}</code>. Reported transfers are queued for moderation and may be automatically quarantined pending review.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(false)}
+                  className="w-full py-2.5 rounded-xl bg-[#1D1D1F] text-white font-semibold text-[13px]"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitReport} className="space-y-4 text-[13px]">
+                <div>
+                  <label
+                    htmlFor="report-category"
+                    className="block font-medium text-[#1D1D1F] mb-1"
+                  >
+                    Issue category
+                  </label>
+                  <select
+                    id="report-category"
+                    value={reportCategory}
+                    onChange={(e) => setReportCategory(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#F5F5F7] border border-[#D2D2D7] text-[#1D1D1F]"
+                  >
+                    <option value="copyright">Copyright or IP infringement</option>
+                    <option value="malware">Malware or harmful file</option>
+                    <option value="privacy">Privacy violation / personal data</option>
+                    <option value="unlawful">Unlawful or prohibited content</option>
+                    <option value="other">Other policy violation</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="report-reason"
+                    className="block font-medium text-[#1D1D1F] mb-1"
+                  >
+                    Description <span className="text-red-600">*</span>
+                  </label>
+                  <textarea
+                    id="report-reason"
+                    required
+                    minLength={5}
+                    rows={3}
+                    placeholder="Describe why this transfer violates Fylshare's Acceptable Use Policy..."
+                    value={reportReason}
+                    onChange={(e) => setReportReason(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#F5F5F7] border border-[#D2D2D7] text-[#1D1D1F]"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="report-contact"
+                    className="block font-medium text-[#1D1D1F] mb-1"
+                  >
+                    Contact email{" "}
+                    <span className="text-[#6E6E73] font-normal">
+                      (optional, for takedown follow-up)
+                    </span>
+                  </label>
+                  <input
+                    id="report-contact"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={reportContact}
+                    onChange={(e) => setReportContact(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#F5F5F7] border border-[#D2D2D7] text-[#1D1D1F]"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowReportModal(false)}
+                    className="px-4 py-2 rounded-lg border border-[#D2D2D7] text-[#1D1D1F] font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingReport}
+                    className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold"
+                  >
+                    {submittingReport ? "Submitting..." : "Submit Report"}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

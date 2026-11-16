@@ -1,81 +1,46 @@
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import React from "react";
+import { X, CheckCircle2, AlertCircle, Info } from "lucide-react";
 
-const iconMap = {
-  success: "fas fa-check-circle",
-  error: "fas fa-times-circle",
-  warning: "fas fa-exclamation-triangle",
-  info: "fas fa-info-circle",
-};
+export default function Toast({ message, type = "info", onClose }) {
+  const styles = {
+    success: {
+      bg: "bg-[#FFFFFF] border-[#D2D2D7]",
+      icon: <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />,
+    },
+    error: {
+      bg: "bg-[#FFFFFF] border-red-300",
+      icon: <AlertCircle size={18} className="text-red-600 shrink-0" />,
+    },
+    warning: {
+      bg: "bg-[#FFFFFF] border-amber-300",
+      icon: <AlertCircle size={18} className="text-amber-600 shrink-0" />,
+    },
+    info: {
+      bg: "bg-[#FFFFFF] border-[#D2D2D7]",
+      icon: <Info size={18} className="text-[#0066CC] shrink-0" />,
+    },
+  };
 
-const colorMap = {
-  success: "bg-green-600 border-green-400",
-  error: "bg-red-600 border-red-400",
-  warning: "bg-yellow-500 text-black border-yellow-300",
-  info: "bg-blue-600 border-blue-400",
-};
-
-/**
- * Props:
- *  - message: string
- *  - type: "success" | "error" | "warning" | "info"
- *  - durationMs: number (how long to show the toast)
- *  - onClose: () => void
- */
-const Toast = ({ message, type = "info", durationMs = 3000, onClose }) => {
-  const [progress, setProgress] = useState(100);
-
-  useEffect(() => {
-    // Progress bar: 100 → 0 over `durationMs`
-    const stepMs = Math.max(10, Math.floor(durationMs / 100)); // ~100 steps
-    const stepPct = 100 / Math.ceil(durationMs / stepMs);
-
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        const next = prev - stepPct;
-        return next <= 0 ? 0 : next;
-      });
-    }, stepMs);
-
-    const timeout = setTimeout(() => {
-      onClose?.();
-    }, durationMs);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [durationMs, onClose]);
+  const current = styles[type] || styles.info;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 50 }}
-      className={`relative w-80 px-5 py-3 rounded-lg shadow-lg text-sm flex items-start gap-3 text-white border-l-4 ${colorMap[type]}`}
+    <div
       role="status"
       aria-live="polite"
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg text-[#1D1D1F] text-[13px] font-medium max-w-md ${current.bg}`}
     >
-      <i className={`${iconMap[type]} text-lg mt-1`} />
-      <span className="flex-1">{message}</span>
-      <button onClick={onClose} className="text-white text-xs font-bold ml-2 hover:opacity-80">
-        ✕
-      </button>
-
-      {/* Progress bar */}
-      <div className="absolute bottom-0 left-0 h-1 w-full bg-white bg-opacity-20 rounded-b overflow-hidden">
-        <motion.div
-          initial={{ width: "100%" }}
-          animate={{ width: `${progress}%` }}
-          className={`h-full ${type === "success" ? "bg-green-400"
-            : type === "error" ? "bg-red-400"
-              : type === "warning" ? "bg-yellow-300"
-                : "bg-blue-400"
-            }`}
-        />
-      </div>
-    </motion.div>
+      {current.icon}
+      <span className="flex-1 leading-snug">{message}</span>
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-[#6E6E73] hover:text-[#1D1D1F] p-1 rounded-md transition-colors"
+          aria-label="Dismiss notification"
+        >
+          <X size={15} />
+        </button>
+      )}
+    </div>
   );
-};
-
-export default Toast;
+}
