@@ -82,7 +82,7 @@ export default function Search() {
         setResult(null);
         setStatusState("not_found");
         setErrorMessage(
-          "No active transfer was found for this code. It may have expired after its 48-hour window, been revoked by the sender, or been mistyped."
+          "No active transfer was found for this code. It may have been deleted by the sender or mistyped."
         );
         return;
       }

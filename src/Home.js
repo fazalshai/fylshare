@@ -34,7 +34,7 @@ function formatBytes(bytes) {
 }
 
 function formatExpiryDate(isoString) {
-  if (!isoString) return "48 hours from upload";
+  if (!isoString) return "Available until deleted";
   try {
     return new Date(isoString).toLocaleString(undefined, {
       month: "short",
@@ -243,9 +243,7 @@ export default function Home() {
         fileCount: responseData.fileCount || files.length,
         totalBytes: responseData.totalBytes || totalSize,
         createdAt: responseData.createdAt || new Date().toISOString(),
-        expiresAt:
-          responseData.expiresAt ||
-          new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
+        expiresAt: responseData.expiresAt || null,
         scanStatus: responseData.scanStatus || "passed",
       };
 
@@ -506,9 +504,11 @@ export default function Home() {
                   <div className="flex items-center gap-2">
                     <Clock size={14} className="text-[#6E6E73] shrink-0" />
                     <span>
-                      {activeTransfer.fileCount} file(s) ({formatBytes(activeTransfer.totalBytes)}) · Expires{" "}
+                      {activeTransfer.fileCount} file(s) ({formatBytes(activeTransfer.totalBytes)}) ·{" "}
                       <strong className="text-[#1D1D1F]">
-                        {formatExpiryDate(activeTransfer.expiresAt)}
+                        {activeTransfer.expiresAt
+                          ? `Expires ${formatExpiryDate(activeTransfer.expiresAt)}`
+                          : "Available until deleted"}
                       </strong>
                     </span>
                   </div>
@@ -702,7 +702,7 @@ export default function Home() {
 
                 {/* Proportionate Contextual Notice */}
                 <p className="text-[11px] text-[#6E6E73] leading-relaxed">
-                  Only upload content you own or have the legal right to share. Standard transfers expire automatically after 48 hours. By uploading, you agree to our{" "}
+                  Only upload content you own or have the legal right to share. By uploading, you agree to our{" "}
                   <Link to="/terms" className="text-[#0066CC] hover:underline">
                     Terms &amp; Acceptable Use Policy
                   </Link>{" "}
@@ -765,7 +765,7 @@ export default function Home() {
               </div>
               <ul className="space-y-1.5 leading-relaxed list-disc pl-4">
                 <li>
-                  <strong>Storage &amp; Expiry:</strong> Files are stored privately on Google Cloud Storage and automatically deleted 48 hours after upload.
+                  <strong>Storage &amp; Control:</strong> Files are stored in private Google Cloud Storage buckets and remain available until you revoke them or request deletion.
                 </li>
                 <li>
                   <strong>Metadata:</strong> We store file sizes, timestamps, optional transfer labels, and approximate country (derived from network headers without GPS).
@@ -889,10 +889,10 @@ export default function Home() {
 
             <div className="bg-white rounded-2xl p-6 border border-[#D2D2D7]/70 space-y-2">
               <h3 className="text-[16px] font-semibold text-[#1D1D1F]">
-                3. Automatic 48-Hour Expiry
+                3. Sender Revocation &amp; Control
               </h3>
               <p className="text-[13px] text-[#6E6E73] leading-relaxed">
-                Download links stop working as soon as a transfer expires. Stored file objects are automatically purged, or you can revoke them immediately.
+                Your files stay available for your recipients until you choose to revoke the transfer and delete the stored files from your device or Workspace Box.
               </p>
             </div>
           </div>

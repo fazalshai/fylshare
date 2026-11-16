@@ -118,8 +118,8 @@ export default function Admin() {
   // Navigation Tabs: "transfers" | "workspaces" | "reports" | "audit" | "policy"
   const [activeTab, setActiveTab] = useState("transfers");
 
-  // Query & Filter State (Default: Last 7 days, Asia/Dubai timezone)
-  const [period, setPeriod] = useState("7d");
+  // Query & Filter State (Default: All retained history, Asia/Dubai timezone)
+  const [period, setPeriod] = useState("all_retained");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [timezone, setTimezone] = useState("Asia/Dubai");
@@ -1068,6 +1068,7 @@ export default function Admin() {
                       <thead>
                         <tr className="bg-[#F5F5F7] border-b border-[#D2D2D7] text-[11px] font-semibold uppercase tracking-wider text-[#6E6E73]">
                           <th className="py-3 px-4">Created ({timezone})</th>
+                          <th className="py-3 px-4">Code</th>
                           <th className="py-3 px-4">Label</th>
                           <th className="py-3 px-4">Files &amp; Size</th>
                           <th className="py-3 px-4">Country (Approx.)</th>
@@ -1091,6 +1092,9 @@ export default function Admin() {
                             >
                               <td className="py-3 px-4 whitespace-nowrap font-mono text-[12px] text-[#1D1D1F]">
                                 {formatInTimezone(item.createdAt, timezone)}
+                              </td>
+                              <td className="py-3 px-4 whitespace-nowrap font-mono text-[12px] font-semibold text-[#0066CC]">
+                                {item.code || "—"}
                               </td>
                               <td className="py-3 px-4 max-w-[180px] truncate text-[#1D1D1F] font-medium">
                                 {item.label}

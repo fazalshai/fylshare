@@ -110,7 +110,7 @@ export default function Footer({ onOpenCookieSettings }) {
         <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[12px] text-[#6E6E73]">
           <p>&copy; {year} Fylshare. All rights reserved.</p>
           <p>
-            Standard anonymous uploads expire after 48 hours. Only upload content you own or have the legal right to share.
+            Only upload content you own or have the legal right to share.
           </p>
         </div>
       </div>
