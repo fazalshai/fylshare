@@ -14,7 +14,7 @@ const ARTICLES = [
     content: [
       "Fylshare is designed for quick, temporary file handoffs between devices without requiring account creation. You can upload up to 10 files (1 GB total) in a single transfer.",
       "When your upload finishes, Fylshare generates both a 6-digit numerical code (ideal for typing on a second computer) and a scannable QR code containing a high-entropy share token.",
-      "Standard anonymous uploads expire automatically after 48 hours. If you finish transferring your files sooner, you can click 'Delete server files' under Recent transfers on your device to purge the stored files immediately.",
+      "If you finish transferring your files and want to remove them, you can click 'Delete server files' under Recent transfers on your device to purge the stored files immediately.",
     ],
   },
   {

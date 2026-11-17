@@ -32,7 +32,7 @@ const ROUTE_SEO = {
   "/": {
     title: "Fylshare — Files shared. Simply.",
     description:
-      "Upload your files up to 1GB. Share a 6-digit code or QR code. No account required. Standard transfers expire automatically after 48 hours.",
+      "Upload your files up to 1GB. Share a 6-digit code or QR code. No account required.",
   },
   "/search": {
     title: "Receive Files with a 6-Digit Code | Fylshare",
@@ -62,7 +62,7 @@ const ROUTE_SEO = {
   "/faq": {
     title: "Frequently Asked Questions | Fylshare",
     description:
-      "Clear answers about Fylshare file size limits, supported formats, 48-hour expiration, and privacy practices.",
+      "Clear answers about Fylshare file size limits, supported formats, Workspace Boxes, and privacy practices.",
   },
   "/security": {
     title: "Security & Data Handling | Fylshare",

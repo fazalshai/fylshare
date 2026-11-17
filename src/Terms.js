@@ -61,10 +61,10 @@ export default function TermsOfService() {
 
         <section className="space-y-3 text-[15px] leading-relaxed">
           <h2 className="text-[20px] font-semibold">
-            4. File Expiration, Revocation &amp; Moderation
+            4. File Storage, Revocation &amp; Moderation
           </h2>
           <p className="text-[#6E6E73]">
-            Fylshare is a temporary file-transfer tool, not a permanent backup archive. Standard anonymous uploads expire after 48 hours, at which point download links stop working and stored files are queued for permanent deletion. We may quarantine, disable, or delete any transfer or Workspace Box reported for violating these Terms at any time.
+            Uploaded files remain accessible via their 6-digit code or share link until deleted by the sender or removed by an administrator. We may quarantine, disable, or delete any transfer or Workspace Box reported for violating these Terms at any time.
           </p>
         </section>
 

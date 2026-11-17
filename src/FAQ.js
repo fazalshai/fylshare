@@ -16,7 +16,7 @@ export default function FAQ() {
     {
       question: "How long are uploaded files kept?",
       answer:
-        "Standard anonymous uploads expire 48 hours after upload. Download access stops immediately at the expiration time, and the stored file objects are deleted by our automated cleanup job. You can also revoke and delete your uploaded files early from the homepage on the same browser. Files uploaded to a PIN-protected Workspace Box remain until deleted by a PIN holder.",
+        "Uploaded files remain stored and accessible via their 6-digit code or QR link until you choose to delete them (using 'Delete server files' under Recent transfers on your device) or until they are removed by an administrator.",
     },
     {
       question: "Which file types are supported?",
@@ -26,7 +26,7 @@ export default function FAQ() {
     {
       question: "What is the difference between removing a transfer from my browser and deleting server files?",
       answer:
-        "“Remove from browser” only clears the shortcut saved in your browser's local storage; the files remain downloadable on Fylshare until their 48-hour expiry. “Delete server files” (or “Revoke transfer”) permanently deletes the stored files from cloud storage and disables the 6-digit code immediately.",
+        "“Remove from browser” only clears the shortcut saved in your browser's local storage; the files remain downloadable on Fylshare. “Delete server files” permanently deletes the stored files from cloud storage and disables the 6-digit code immediately.",
     },
     {
       question: "Is Fylshare end-to-end encrypted or zero-knowledge?",

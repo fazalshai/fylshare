@@ -38,7 +38,7 @@ export default function PrivacyPolicy() {
                 A. Uploaded File Contents
               </h3>
               <p className="text-[#6E6E73] mt-0.5">
-                Files you upload are transmitted over HTTPS (TLS 1.3) to our Node.js ingestion service and stored as private objects in Google Cloud Storage (via Firebase). Standard anonymous transfers expire 48 hours after upload, after which download access is disabled and the stored objects are deleted by our automated cleanup job.
+                Files you upload are transmitted over HTTPS (TLS 1.3) to our Node.js ingestion service and stored as private objects in Google Cloud Storage (via Firebase). Uploaded files remain stored and accessible via their 6-digit code or QR link until deleted by the sender or removed by an administrator.
               </p>
             </div>
 
@@ -47,7 +47,7 @@ export default function PrivacyPolicy() {
                 B. Optional Transfer Label &amp; Filenames
               </h3>
               <p className="text-[#6E6E73] mt-0.5">
-                If you enter an optional Transfer Label, it is stored alongside the original filenames so the recipient can recognize the package. Do not include sensitive personal information in transfer labels. When an anonymous transfer expires or is revoked, the transfer label, filenames, and retrieval code are scrubbed from the operational record.
+                If you enter an optional Transfer Label, it is stored alongside the original filenames so the recipient can recognize the package. Do not include sensitive personal information in transfer labels.
               </p>
             </div>
 
@@ -99,20 +99,20 @@ export default function PrivacyPolicy() {
               <tbody className="divide-y divide-[#D2D2D7]/60 text-[#6E6E73]">
                 <tr>
                   <td className="py-3 px-4 font-medium text-[#1D1D1F]">
-                    Anonymous File Contents
+                    Uploaded File Contents &amp; Retrieval Codes
                   </td>
-                  <td className="py-3 px-4">48 hours</td>
+                  <td className="py-3 px-4">Until deleted</td>
                   <td className="py-3 px-4">
-                    Access stops immediately at expiry; objects are deleted from storage by hourly cleanup.
+                    Retained until deleted by the sender (via their revocation token) or removed by an administrator.
                   </td>
                 </tr>
                 <tr>
                   <td className="py-3 px-4 font-medium text-[#1D1D1F]">
-                    Transfer Labels, Filenames &amp; 6-Digit Codes
+                    Transfer Labels &amp; Filenames
                   </td>
-                  <td className="py-3 px-4">48 hours</td>
+                  <td className="py-3 px-4">Until deleted</td>
                   <td className="py-3 px-4">
-                    Redacted automatically when the transfer expires, is revoked, or is removed.
+                    Retained alongside the transfer until the transfer is deleted or removed.
                   </td>
                 </tr>
                 <tr>

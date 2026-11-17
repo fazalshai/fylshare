@@ -21,7 +21,7 @@ export default function AboutUs() {
           {[
             { value: "1 GB", label: "Max Transfer Size" },
             { value: "10", label: "Files Per Batch" },
-            { value: "48h", label: "Standard Expiry" },
+            { value: "6-Digit", label: "Instant Code & QR" },
             { value: "No Account", label: "Required to Send" },
           ].map((stat, i) => (
             <div
@@ -42,7 +42,7 @@ export default function AboutUs() {
             Most everyday file transfers—moving a document to a shared computer, sending project drafts to a colleague, or transferring files between a desktop and a phone—do not require permanent cloud drive storage or account sign-ins.
           </p>
           <p className="text-[#6E6E73]">
-            When you upload a file to Fylshare, our server validates the file format, stores it privately on Google Cloud Storage, and generates a 6-digit retrieval code alongside a high-entropy QR link. After 48 hours, download access stops and the stored file objects are automatically purged.
+            When you upload a file to Fylshare, our server validates the file format, stores it privately on Google Cloud Storage, and generates a 6-digit retrieval code alongside a high-entropy QR link. You can also revoke and delete your uploaded files from our servers at any time.
           </p>
         </section>
 

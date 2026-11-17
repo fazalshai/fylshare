@@ -17,7 +17,6 @@ import {
   Activity,
   X,
   Info,
-  Lock,
 } from "lucide-react";
 import config from "./config";
 
@@ -142,9 +141,6 @@ export default function Admin() {
 
   // Selected Transfer Details & Modals
   const [selectedTransfer, setSelectedTransfer] = useState(null);
-  const [inspectFileIndex, setInspectFileIndex] = useState(null);
-  const [inspectReason, setInspectReason] = useState("");
-  const [inspectError, setInspectError] = useState("");
   const [confirmDeleteTarget, setConfirmDeleteTarget] = useState(null);
   const [actionBanner, setActionBanner] = useState(null);
 
@@ -377,19 +373,11 @@ export default function Admin() {
     }
   };
 
-  const handleAuditedFileOpen = async (e) => {
-    e.preventDefault();
-    setInspectError("");
-    if (!selectedTransfer || inspectFileIndex === null) return;
-    if (inspectReason.trim().length < 8) {
-      setInspectError("Enter a documented moderation/security reason (at least 8 characters).");
-      return;
-    }
-
+  const handleDirectFileOpen = async (transferObj, fileIdx = 0) => {
     try {
       const res = await fetch(
         `${config.API_BASE_URL}/api/admin/transfers/${encodeURIComponent(
-          selectedTransfer.transferId || selectedTransfer.id
+          transferObj.transferId || transferObj.id
         )}/file-access`,
         {
           method: "POST",
@@ -398,25 +386,22 @@ export default function Admin() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            fileIndex: inspectFileIndex,
-            reason: inspectReason.trim(),
+            fileIndex: fileIdx,
+            reason: "Admin direct view",
           }),
         }
       );
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.downloadUrl) {
         window.open(data.downloadUrl, "_blank", "noopener,noreferrer");
-        setInspectFileIndex(null);
-        setInspectReason("");
-        setActionBanner({
-          type: "info",
-          text: "File inspection link generated and recorded in Admin Audit Log.",
-        });
       } else {
-        setInspectError(data.error || "Could not authorize file access.");
+        setActionBanner({
+          type: "error",
+          text: data.error || "Could not open file.",
+        });
       }
     } catch {
-      setInspectError("Network error while authorizing file access.");
+      setActionBanner({ type: "error", text: "Network error while opening file." });
     }
   };
 
@@ -1279,19 +1264,16 @@ export default function Admin() {
                                 {f.storageDeleted ? "Purged from storage" : "Stored privately"}
                               </p>
                             </div>
-                            {adminUser.role === "admin" &&
-                              !f.storageDeleted &&
+                            {!f.storageDeleted &&
                               selectedTransfer.status === "available" && (
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setInspectFileIndex(f.index);
-                                    setInspectReason("");
-                                    setInspectError("");
-                                  }}
-                                  className="px-2.5 py-1 rounded-lg bg-white border border-[#D2D2D7] text-[11px] font-semibold text-[#1D1D1F] hover:bg-[#E8E8ED] shrink-0 flex items-center gap-1"
+                                  onClick={() =>
+                                    handleDirectFileOpen(selectedTransfer, f.index)
+                                  }
+                                  className="px-2.5 py-1 rounded-lg bg-[#0066CC] text-white text-[11px] font-semibold hover:bg-[#0055B3] shrink-0 flex items-center gap-1"
                                 >
-                                  <Eye size={12} /> Inspect (Audited)
+                                  <Eye size={12} /> View File
                                 </button>
                               )}
                           </li>
@@ -1387,7 +1369,7 @@ export default function Admin() {
           </div>
         )}
 
-        {/* === TAB 2: WORKSPACES (PINS REDACTED) === */}
+        {/* === TAB 2: WORKSPACES (WITH PIN VISIBLE TO ADMIN) === */}
         {activeTab === "workspaces" && (
           <div className="bg-white border border-[#D2D2D7] rounded-2xl overflow-hidden">
             <div className="px-6 py-4 border-b border-[#D2D2D7] flex items-center justify-between">
@@ -1396,7 +1378,7 @@ export default function Admin() {
                   Workspace Boxes ({workspaces.length})
                 </h2>
                 <p className="text-[12px] text-[#6E6E73]">
-                  Workspace PINs are hashed and never displayed in the admin console.
+                  Manage all active Workspace Boxes and their PINs.
                 </p>
               </div>
             </div>
@@ -1411,13 +1393,11 @@ export default function Admin() {
                   <thead>
                     <tr className="bg-[#F5F5F7] border-b border-[#D2D2D7] text-[11px] font-semibold uppercase tracking-wider text-[#6E6E73]">
                       <th className="py-3 px-5">Box Name</th>
-                      <th className="py-3 px-5">PIN Protection</th>
+                      <th className="py-3 px-5">PIN</th>
                       <th className="py-3 px-5">Files</th>
                       <th className="py-3 px-5">Volume</th>
                       <th className="py-3 px-5">Created ({timezone})</th>
-                      {adminUser.role === "admin" && (
-                        <th className="py-3 px-5 text-right">Actions</th>
-                      )}
+                      <th className="py-3 px-5 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#D2D2D7]/60">
@@ -1426,27 +1406,23 @@ export default function Admin() {
                         <td className="py-3 px-5 font-semibold text-[#1D1D1F]">
                           {w.boxName}
                         </td>
-                        <td className="py-3 px-5 text-[12px] text-[#6E6E73]">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#F5F5F7] border border-[#D2D2D7]">
-                            <Lock size={11} /> {w.pinFormat === "scrypt_hashed" ? "Scrypt Hashed" : "Protected"}
-                          </span>
+                        <td className="py-3 px-5 font-mono font-semibold text-[#0066CC]">
+                          {w.pin || "—"}
                         </td>
                         <td className="py-3 px-5">{w.fileCount} files</td>
                         <td className="py-3 px-5">{formatBytes(w.totalBytes)}</td>
                         <td className="py-3 px-5 font-mono text-[12px]">
                           {formatInTimezone(w.createdAt, timezone)}
                         </td>
-                        {adminUser.role === "admin" && (
-                          <td className="py-3 px-5 text-right">
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteWorkspace(w.boxName)}
-                              className="text-red-600 hover:underline text-[12px] font-semibold"
-                            >
-                              Delete Box
-                            </button>
-                          </td>
-                        )}
+                        <td className="py-3 px-5 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteWorkspace(w.boxName)}
+                            className="text-red-600 hover:underline text-[12px] font-semibold"
+                          >
+                            Delete Box
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1620,20 +1596,20 @@ export default function Admin() {
                 <tbody className="divide-y divide-[#D2D2D7]/60">
                   <tr>
                     <td className="py-3 px-4 font-semibold">
-                      1. Anonymous Uploaded File Contents
+                      1. Uploaded File Contents &amp; Retrieval Codes
                     </td>
-                    <td className="py-3 px-4 font-mono">48 hours</td>
+                    <td className="py-3 px-4 font-mono">Until deleted</td>
                     <td className="py-3 px-4 text-[#6E6E73]">
-                      Download access stops immediately at <code className="font-mono">expiresAt</code>. Background cleanup deletes primary objects from Firebase Storage and records <code className="font-mono">storageDeletedAt</code>.
+                      Files and 6-digit retrieval codes remain active and downloadable until deleted by the sender or removed by an administrator.
                     </td>
                   </tr>
                   <tr>
                     <td className="py-3 px-4 font-semibold">
-                      2. Identifying Transfer Metadata (Labels, Filenames, 6-Digit Codes)
+                      2. Transfer Metadata (Labels, Filenames, Codes)
                     </td>
-                    <td className="py-3 px-4 font-mono">48 hours (until file expiry/revocation)</td>
+                    <td className="py-3 px-4 font-mono">Until deleted</td>
                     <td className="py-3 px-4 text-[#6E6E73]">
-                      Scrubbed and redacted when the file expires, is revoked, or is deleted so expired records do not retain personal labels or filenames.
+                      Retained alongside the transfer so recipients and the admin console can view filenames, labels, and retrieval codes.
                     </td>
                   </tr>
                   <tr>
@@ -1669,62 +1645,6 @@ export default function Admin() {
           </div>
         )}
       </div>
-
-      {/* Modal: Audited File Content Inspection */}
-      {inspectFileIndex !== null && selectedTransfer && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
-        >
-          <div className="bg-white border border-[#D2D2D7] rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <h3 className="text-[16px] font-semibold text-[#1D1D1F]">
-              Audited File Inspection
-            </h3>
-            <p className="text-[12px] text-[#6E6E73] leading-relaxed">
-              Opening stored file contents is restricted and logged in the Admin Audit Log with your username, timestamp, transfer ID, and documented reason.
-            </p>
-            <form onSubmit={handleAuditedFileOpen} className="space-y-3">
-              <div>
-                <label
-                  htmlFor="audit-reason-input"
-                  className="block text-[12px] font-medium text-[#1D1D1F] mb-1"
-                >
-                  Documented reason (moderation, abuse report ID, or security check)
-                </label>
-                <input
-                  id="audit-reason-input"
-                  type="text"
-                  required
-                  minLength={8}
-                  placeholder="e.g., Reviewing copyright report rep_12345"
-                  value={inspectReason}
-                  onChange={(e) => setInspectReason(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-[#F5F5F7] border border-[#D2D2D7] text-[13px]"
-                />
-              </div>
-              {inspectError && (
-                <p className="text-[12px] text-red-600">{inspectError}</p>
-              )}
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setInspectFileIndex(null)}
-                  className="px-4 py-2 rounded-lg border border-[#D2D2D7] text-[12px] font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-[#0066CC] text-white text-[12px] font-semibold"
-                >
-                  Log &amp; Generate 5-Min Link
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Modal: Confirm Destructive Deletion */}
       {confirmDeleteTarget && (

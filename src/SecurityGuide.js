@@ -51,7 +51,7 @@ export default function SecurityGuide() {
               Retrieval Codes vs. Tokenized Links
             </h2>
             <p className="text-[13px] text-[#6E6E73] leading-relaxed">
-              Six-digit codes provide fast manual convenience across devices, backed by per-network rate limiting and a 48-hour validity window. Because a 6-digit number has limited entropy, share links and QR codes use a 192-bit cryptographically random token. Do not rely on a 6-digit code alone for highly confidential secrets.
+              Six-digit codes provide fast manual convenience across devices, backed by per-network rate limiting. Because a 6-digit number has limited entropy, share links and QR codes use a 192-bit cryptographically random token. Do not rely on a 6-digit code alone for highly confidential secrets.
             </p>
           </div>
 
