@@ -53,10 +53,10 @@ export default function PrivacyPolicy() {
 
             <div>
               <h3 className="font-semibold text-[#1D1D1F]">
-                C. Approximate Country &amp; Operational Metadata
+                C. Location (City, State/Region &amp; Country) &amp; Quality Monitoring Metadata
               </h3>
               <p className="text-[#6E6E73] mt-0.5">
-                We derive an approximate country code (for example, AE or IN) from standard network/CDN proxy headers when available, along with coarse device category (mobile, desktop, or tablet) and transfer byte counts. We do not request browser GPS geolocation permissions, and we do not store raw visitor IP addresses on transfer documents. Transient IP rate-limiting counters are held in server memory for up to 5 minutes to prevent code-guessing abuse.
+                With your acceptance when uploading, we record location details—including city, state/region, and country—alongside coarse device category (mobile, desktop, or tablet) and transfer byte counts for service quality, operational accuracy, and abuse monitoring.
               </p>
             </div>
 

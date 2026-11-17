@@ -1056,7 +1056,7 @@ export default function Admin() {
                           <th className="py-3 px-4">Code</th>
                           <th className="py-3 px-4">Label</th>
                           <th className="py-3 px-4">Files &amp; Size</th>
-                          <th className="py-3 px-4">Country (Approx.)</th>
+                          <th className="py-3 px-4">Location (City, State, Country)</th>
                           <th className="py-3 px-4">Status</th>
                           <th className="py-3 px-4 text-right">Details</th>
                         </tr>
@@ -1096,12 +1096,12 @@ export default function Admin() {
                                   <span className="inline-flex items-center gap-1.5 text-[12px] text-[#1D1D1F]">
                                     <span>{flag}</span>
                                     <span>
-                                      {item.countryName} ({item.countryCode})
+                                      {item.locationDisplay || item.countryName} ({item.countryCode})
                                     </span>
                                   </span>
                                 ) : (
                                   <span className="text-[12px] text-[#6E6E73]">
-                                    Unknown
+                                    {item.locationDisplay || "Unknown"}
                                   </span>
                                 )}
                               </td>
@@ -1209,11 +1209,14 @@ export default function Admin() {
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-[#6E6E73]">Country (Approx.)</dt>
+                        <dt className="text-[#6E6E73]">Location (City, State, Country)</dt>
                         <dd className="text-[#1D1D1F] font-medium mt-0.5">
                           {selectedTransfer.countryCode
-                            ? `${selectedTransfer.countryName} (${selectedTransfer.countryCode})`
-                            : "Unknown"}
+                            ? `${
+                                selectedTransfer.locationDisplay ||
+                                selectedTransfer.countryName
+                              } (${selectedTransfer.countryCode})`
+                            : selectedTransfer.locationDisplay || "Unknown"}
                         </dd>
                       </div>
                       <div>

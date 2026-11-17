@@ -68,6 +68,34 @@ export default function Home() {
   const [copiedKey, setCopiedKey] = useState(null);
   const [revokingCode, setRevokingCode] = useState(null);
 
+  // Quality & Monitoring Consent + City/State/Country Location
+  const [qualityTermsAccepted, setQualityTermsAccepted] = useState(
+    () => sessionStorage.getItem("fylshare_quality_terms_accepted") === "true"
+  );
+  const [geoDetails, setGeoDetails] = useState({
+    city: "",
+    region: "",
+    countryCode: "",
+    countryName: "",
+  });
+
+  useEffect(() => {
+    if (!qualityTermsAccepted) return;
+    fetch("https://ipwho.is/")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data.country_code) {
+          setGeoDetails({
+            city: data.city || "",
+            region: data.region || "",
+            countryCode: data.country_code || "",
+            countryName: data.country || "",
+          });
+        }
+      })
+      .catch(() => {});
+  }, [qualityTermsAccepted]);
+
   // Load and prune expired local transfers on mount
   useEffect(() => {
     try {
@@ -163,6 +191,13 @@ export default function Home() {
       return;
     }
 
+    if (!qualityTermsAccepted) {
+      setUploadErrorMsg(
+        "Please accept the Terms, Privacy Notice, and quality/location monitoring agreement before uploading."
+      );
+      return;
+    }
+
     const totalSize = files.reduce((sum, f) => sum + (f.size || 0), 0);
     if (totalSize > MAX_TOTAL_BYTES) {
       setUploadErrorMsg("Total size exceeds the 1 GB limit.");
@@ -179,9 +214,36 @@ export default function Home() {
       transfer_type: "anonymous",
     });
 
+    // If geoDetails haven't loaded yet, attempt a quick 1.2s lookup after consent before sending
+    let currentGeo = geoDetails;
+    if (!currentGeo.countryCode && typeof window !== "undefined") {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 1200);
+        const r = await fetch("https://ipwho.is/", { signal: controller.signal });
+        clearTimeout(timer);
+        const data = await r.json();
+        if (data && data.country_code) {
+          currentGeo = {
+            city: data.city || "",
+            region: data.region || "",
+            countryCode: data.country_code || "",
+            countryName: data.country || "",
+          };
+          setGeoDetails(currentGeo);
+        }
+      } catch {
+        // Fallback to server proxy headers
+      }
+    }
+
     const formData = new FormData();
     formData.append("name", label.trim().slice(0, 80));
     formData.append("size", String(totalSize));
+    if (currentGeo.city) formData.append("city", currentGeo.city);
+    if (currentGeo.region) formData.append("region", currentGeo.region);
+    if (currentGeo.countryCode) formData.append("countryCode", currentGeo.countryCode);
+    if (currentGeo.countryName) formData.append("countryName", currentGeo.countryName);
     files.forEach((file) => formData.append("files", file));
 
     try {
@@ -680,6 +742,36 @@ export default function Home() {
                   </div>
                 )}
 
+                {/* Required Quality & Monitoring Acceptance Checkbox */}
+                <label className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7]/80 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={qualityTermsAccepted}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setQualityTermsAccepted(checked);
+                      if (checked) {
+                        sessionStorage.setItem("fylshare_quality_terms_accepted", "true");
+                        setUploadErrorMsg("");
+                      } else {
+                        sessionStorage.removeItem("fylshare_quality_terms_accepted");
+                      }
+                    }}
+                    className="mt-0.5 w-4 h-4 accent-[#0066CC] rounded cursor-pointer shrink-0"
+                  />
+                  <span className="text-[11.5px] text-[#6E6E73] leading-relaxed">
+                    I confirm I have the legal right to share these files, agree to the{" "}
+                    <Link to="/terms" className="text-[#0066CC] hover:underline">
+                      Terms &amp; Acceptable Use Policy
+                    </Link>{" "}
+                    and{" "}
+                    <Link to="/privacy" className="text-[#0066CC] hover:underline">
+                      Privacy Notice
+                    </Link>
+                    , and accept that Fylshare records transfer metadata and location details (city, state/region, and country) for service quality and security monitoring.
+                  </span>
+                </label>
+
                 {/* Primary Action Button */}
                 <div className="flex items-center gap-3">
                   <button
@@ -699,19 +791,6 @@ export default function Home() {
                     )}
                   </button>
                 </div>
-
-                {/* Proportionate Contextual Notice */}
-                <p className="text-[11px] text-[#6E6E73] leading-relaxed">
-                  Only upload content you own or have the legal right to share. By uploading, you agree to our{" "}
-                  <Link to="/terms" className="text-[#0066CC] hover:underline">
-                    Terms &amp; Acceptable Use Policy
-                  </Link>{" "}
-                  and{" "}
-                  <Link to="/privacy" className="text-[#0066CC] hover:underline">
-                    Privacy Notice
-                  </Link>
-                  .
-                </p>
               </div>
             )}
           </div>
@@ -768,7 +847,7 @@ export default function Home() {
                   <strong>Storage &amp; Control:</strong> Files are stored in private Google Cloud Storage buckets and remain available until you revoke them or request deletion.
                 </li>
                 <li>
-                  <strong>Metadata:</strong> We store file sizes, timestamps, optional transfer labels, and approximate country (derived from network headers without GPS).
+                  <strong>Quality &amp; Location Monitoring:</strong> With your acceptance on upload, we record file sizes, timestamps, optional transfer labels, and location details (city, state/region, and country) for service quality, accuracy, and security monitoring.
                 </li>
                 <li>
                   <strong>Operator Access:</strong> Fylshare encrypts data in transit (TLS 1.3) and at rest, but is not a zero-knowledge service. Authorized administrators may review reported transfers for abuse moderation.
