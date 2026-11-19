@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import App, { AppContent } from "./App";
+import RewardsInvite from "./RewardsInvite";
 import {
   sanitizeUrlForAnalytics,
   sanitizeEventParams,
@@ -248,4 +249,74 @@ test("5. Admin Console requires server authentication and displays separated Tra
   expect(screen.getByTestId("kpi-total-files")).toHaveTextContent("7");
   expect(screen.getByText("Six File Package")).toBeInTheDocument();
   expect(screen.getAllByText("Unknown").length).toBeGreaterThan(0);
+});
+
+test("6. RewardsInvite stays hidden when no campaign is active and renders dismissible offer when active", async () => {
+  // Case A: No active campaign -> renders nothing (no fake prizes)
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      json: async () => ({ active: false, campaign: null }),
+    })
+  );
+
+  const { unmount } = render(
+    <MemoryRouter>
+      <RewardsInvite transfer={{ code: "123456", revokeToken: "tok_1234567890123456" }} />
+    </MemoryRouter>
+  );
+
+  await waitFor(() => {
+    expect(global.fetch).toHaveBeenCalled();
+  });
+  expect(screen.queryByText(/Optional: join Fylshare Rewards/i)).toBeNull();
+  unmount();
+
+  // Case B: Active funded campaign -> renders invitation with "Join rewards" and "Continue without joining"
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      json: async () => ({
+        active: true,
+        campaign: {
+          campaignId: "cmp_test_1",
+          name: "UAE Activity Campaign",
+          startAt: "2026-11-16T00:00:00.000Z",
+          endAt: "2026-11-30T23:59:59.000Z",
+          timezone: "Asia/Dubai",
+          eligibleCountries: ["AE"],
+          eligibilityRequirements: "UAE residents aged 18+.",
+          marketplace: "amazon.ae",
+          marketplaceLabel: "Amazon.ae (UAE)",
+          currency: "AED",
+          rewardValue: 50,
+          prizeCount: 5,
+          deliveryDeadline: "2026-12-07T00:00:00.000Z",
+          scoringRules: {
+            pointsPerTransfer: 1,
+            pointsPerDelivery: 2,
+            maxDeliveriesPerTransfer: 3,
+            maxTransfersPerDay: 5,
+          },
+        },
+      }),
+    })
+  );
+
+  render(
+    <MemoryRouter>
+      <RewardsInvite transfer={{ code: "123456", revokeToken: "tok_1234567890123456" }} />
+    </MemoryRouter>
+  );
+
+  await waitFor(() => {
+    expect(screen.getByText(/Optional: join Fylshare Rewards/i)).toBeInTheDocument();
+  });
+  expect(screen.getByText(/Join rewards/i)).toBeInTheDocument();
+  const dismissBtn = screen.getByRole("button", { name: /Continue without joining/i });
+  expect(dismissBtn).toBeInTheDocument();
+
+  // Clicking "Continue without joining" dismisses the card immediately
+  fireEvent.click(dismissBtn);
+  expect(screen.queryByText(/Optional: join Fylshare Rewards/i)).toBeNull();
 });

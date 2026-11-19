@@ -19,6 +19,7 @@ import {
   Info,
 } from "lucide-react";
 import config from "./config";
+import AdminCampaigns from "./AdminCampaigns";
 
 const TIMEZONE_OPTIONS = [
   { value: "Asia/Dubai", label: "Asia/Dubai (GST · UTC+04:00)" },
@@ -114,8 +115,15 @@ export default function Admin() {
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
-  // Navigation Tabs: "transfers" | "workspaces" | "reports" | "audit" | "policy"
-  const [activeTab, setActiveTab] = useState("transfers");
+  // Navigation Tabs: "transfers" | "workspaces" | "reports" | "audit" | "policy" | "campaigns"
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("tab") || "transfers";
+    } catch {
+      return "transfers";
+    }
+  });
 
   // Query & Filter State (Default: All retained history, Asia/Dubai timezone)
   const [period, setPeriod] = useState("all_retained");
@@ -711,6 +719,7 @@ export default function Admin() {
                 ? [{ id: "audit", label: "Audit Log", icon: <Shield size={14} /> }]
                 : []),
               { id: "policy", label: "Retention & Lifecycle", icon: <Clock size={14} /> },
+              { id: "campaigns", label: "Campaigns & Rewards", icon: <Flag size={14} /> },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -750,6 +759,11 @@ export default function Admin() {
             </select>
           </div>
         </div>
+
+        {/* === CAMPAIGNS & REWARDS === */}
+        {activeTab === "campaigns" && (
+          <AdminCampaigns token={token} isAdmin={adminUser.role === "admin"} />
+        )}
 
         {/* === TAB 1: TRANSFERS & HISTORICAL REPORTING === */}
         {activeTab === "transfers" && (
@@ -1251,8 +1265,14 @@ export default function Admin() {
                     <div className="space-y-2 pt-2 border-t border-[#D2D2D7]/70">
                       <p className="text-[12px] font-semibold text-[#1D1D1F]">
                         Files ({selectedTransfer.files?.length || 0})
+                        {selectedTransfer.bundleDownloadRequests > 0 && (
+                          <span className="ml-2 font-normal text-[11px] text-[#6E6E73]">
+                            · Bundle downloads: {selectedTransfer.bundleDownloadRequests} (counted
+                            per transfer, not added to file totals)
+                          </span>
+                        )}
                       </p>
-                      <ul className="space-y-1.5 max-h-48 overflow-y-auto">
+                      <ul className="space-y-1.5 max-h-96 overflow-y-auto">
                         {selectedTransfer.files?.map((f) => (
                           <li
                             key={f.index}
@@ -1266,6 +1286,19 @@ export default function Admin() {
                                 {formatBytes(f.size)} ·{" "}
                                 {f.storageDeleted ? "Purged from storage" : "Stored privately"}
                               </p>
+                              <dl
+                                className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10.5px] text-[#6E6E73]"
+                                title="Clicks = button presses in the browser. Download requested = server issued a signed link (completion on the device is unknown for signed storage URLs). Distinct sessions are short-lived browser sessions, not verified people."
+                              >
+                                <dt>Button clicks</dt><dd className="text-[#1D1D1F]">{f.buttonClicks || 0}</dd>
+                                <dt>Download requested / link issued</dt><dd className="text-[#1D1D1F]">{f.downloadRequests || 0}</dd>
+                                <dt>Delivery completion</dt><dd className="text-[#1D1D1F]">{f.deliveryCompletionStatus === "observed_proxy_stream" ? `${f.observedDeliveries || 0} observed` : "Unknown (signed URL)"}</dd>
+                                <dt>Repeat downloads</dt><dd className="text-[#1D1D1F]">{f.repeatDownloads || 0}</dd>
+                                <dt>Distinct sessions (estimate)</dt><dd className="text-[#1D1D1F]">{f.estimatedDistinctSessions || 0}</dd>
+                                <dt>Reward-qualifying</dt><dd className="text-[#1D1D1F]">{f.qualifyingDownloads || 0}</dd>
+                                <dt>HEAD / previews · bots · range chunks</dt><dd className="text-[#1D1D1F]">{f.headOrPreviewRequests || 0} · {f.scannerOrBotRequests || 0} · {f.rangeRequests || 0}</dd>
+                                <dt>Last activity</dt><dd className="text-[#1D1D1F]">{f.lastActivityAt ? formatInTimezone(f.lastActivityAt, timezone) : "—"}</dd>
+                              </dl>
                             </div>
                             {!f.storageDeleted &&
                               selectedTransfer.status === "available" && (

@@ -22,6 +22,7 @@ import SecurityGuide from "./SecurityGuide";
 import Blog from "./Blog";
 import Technology from "./Technology";
 import Footer from "./Footer";
+import Rewards from "./Rewards";
 import {
   getAnalyticsConsent,
   setAnalyticsConsent,
@@ -148,6 +149,7 @@ export function AppContent() {
           <Route path="/security" element={<SecurityGuide />} />
           <Route path="/technology" element={<Technology />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/rewards" element={<Rewards />} />
         </Routes>
       </main>
 

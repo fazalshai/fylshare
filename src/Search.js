@@ -15,6 +15,7 @@ import {
 import Toast from "./Toast";
 import config from "./config";
 import { trackEvent } from "./analytics";
+import { activityHeaders, newEventId } from "./rewardsClient";
 
 function formatBytes(bytes) {
   const n = Number(bytes) || 0;
@@ -144,8 +145,19 @@ export default function Search() {
           fileObj.index || 0
         }/download`;
 
+      // Button click is recorded separately from the server-issued download link (never conflated).
+      if (mode === "download") {
+        const clickPath = downloadPath.replace(/\/download$/, "/click");
+        fetch(`${config.API_BASE_URL}${clickPath}`, {
+          method: "POST",
+          headers: activityHeaders({ "X-Event-Id": newEventId("clk") }),
+          keepalive: true,
+        }).catch(() => {});
+      }
+
       const res = await fetch(
-        `${config.API_BASE_URL}${downloadPath}?json=true&mode=${mode}`
+        `${config.API_BASE_URL}${downloadPath}?json=true&mode=${mode}`,
+        { headers: activityHeaders({ "X-Event-Id": newEventId("dl") }) }
       );
 
       if (res.status === 410 || res.status === 404) {

@@ -18,6 +18,22 @@ import {
 import Toast from "./Toast";
 import config from "./config";
 import { trackEvent, getSizeBucket } from "./analytics";
+import RewardsInvite from "./RewardsInvite";
+import { activityHeaders, newEventId } from "./rewardsClient";
+
+// Record failed/cancelled upload attempts (idempotent by eventId). Never blocks the user.
+function reportUploadTelemetry(eventId, status) {
+  try {
+    fetch(`${config.API_BASE_URL}/api/uploads/telemetry`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...activityHeaders() },
+      body: JSON.stringify({ eventId, status }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // ignore
+  }
+}
 
 const MAX_FILES = 10;
 const MAX_TOTAL_BYTES = 1024 * 1024 * 1024; // 1 GB
@@ -51,6 +67,7 @@ function formatExpiryDate(isoString) {
 export default function Home() {
   const navigate = useNavigate();
   const xhrRef = useRef(null);
+  const uploadEventIdRef = useRef(null);
 
   const [label, setLabel] = useState("");
   const [files, setFiles] = useState([]);
@@ -179,6 +196,9 @@ export default function Home() {
     if (xhrRef.current) {
       xhrRef.current.abort();
       xhrRef.current = null;
+      if (uploadEventIdRef.current) {
+        reportUploadTelemetry(uploadEventIdRef.current, "cancelled");
+      }
     }
     setUploadState("cancelled");
     setBytesUploadedPct(0);
@@ -246,11 +266,17 @@ export default function Home() {
     if (currentGeo.countryName) formData.append("countryName", currentGeo.countryName);
     files.forEach((file) => formData.append("files", file));
 
+    // One event ID per upload attempt: network retries with the same ID never double-count
+    const uploadEventId = newEventId("up");
+    uploadEventIdRef.current = uploadEventId;
+
     try {
       const responseData = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhrRef.current = xhr;
         xhr.open("POST", `${config.API_BASE_URL}/api/uploads`, true);
+        const hdrs = activityHeaders({ "X-Event-Id": uploadEventId });
+        Object.entries(hdrs).forEach(([k, v]) => xhr.setRequestHeader(k, v));
 
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable && event.total > 0) {
@@ -279,6 +305,7 @@ export default function Home() {
 
         xhr.onerror = () => {
           xhrRef.current = null;
+          reportUploadTelemetry(uploadEventId, "failed");
           reject(new Error("Network connection failed during upload."));
         };
 
@@ -589,6 +616,9 @@ export default function Home() {
                     </button>
                   )}
                 </div>
+
+                {/* Optional rewards invitation: hidden unless a funded, approved campaign is active */}
+                <RewardsInvite transfer={activeTransfer} />
               </div>
             ) : (
               <div className="space-y-5">
