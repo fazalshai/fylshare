@@ -21,6 +21,7 @@ export default function InnovativeHeader() {
     { name: "Transfer", path: "/" },
     { name: "Receive", path: "/search" },
     { name: "Workspace", path: "/workspace" },
+    { name: "Rewards", path: "/rewards" },
     { name: "Security", path: "/security" },
     { name: "FAQ", path: "/faq" },
     { name: "Support", path: "/contact" },

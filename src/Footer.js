@@ -50,6 +50,11 @@ export default function Footer({ onOpenCookieSettings }) {
                 </Link>
               </li>
               <li>
+                <Link to="/rewards" className="hover:text-[#1D1D1F] transition-colors">
+                  Optional Rewards
+                </Link>
+              </li>
+              <li>
                 <Link to="/technology" className="hover:text-[#1D1D1F] transition-colors">
                   Architecture &amp; Lifecycle
                 </Link>
