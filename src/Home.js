@@ -617,8 +617,8 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* Optional rewards invitation: hidden unless a funded, approved campaign is active */}
-                <RewardsInvite transfer={activeTransfer} />
+                {/* Optional rewards invitation with inline email verification */}
+                <RewardsInvite transfer={activeTransfer} showInlineEnrollment={true} />
               </div>
             ) : (
               <div className="space-y-5">
@@ -884,6 +884,14 @@ export default function Home() {
                 </li>
               </ul>
             </div>
+
+            {/* Optional Fylshare Rewards Card (visible on homepage so users can join with their email or link recent uploads) */}
+            {!activeTransfer && (
+              <RewardsInvite
+                transfer={recentTransfers[0] || null}
+                showInlineEnrollment={true}
+              />
+            )}
 
             {/* Recent Transfers on This Device */}
             {recentTransfers.length > 0 && (

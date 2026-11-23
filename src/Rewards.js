@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import config from "./config";
 import {
   getParticipantToken,
@@ -84,13 +84,17 @@ function RulesPanel({ campaign }) {
 }
 
 function JoinPanel({ campaign, onJoined }) {
+  const defaultCountries = campaign?.eligibleCountries?.length
+    ? campaign.eligibleCountries
+    : ["AE", "IN", "US", "GB", "SA", "CA", "AU", "SG", "DE"];
   const [step, setStep] = useState("email");
   const [email, setEmail] = useState("");
-  const [country, setCountry] = useState((campaign.eligibleCountries || [])[0] || "");
+  const [country, setCountry] = useState(defaultCountries[0] || "AE");
   const [acceptRules, setAcceptRules] = useState(false);
   const [marketing, setMarketing] = useState(false); // unchecked by default
   const [otp, setOtp] = useState("");
   const [pendingToken, setPendingToken] = useState("");
+  const [stagingOtpHint, setStagingOtpHint] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -98,6 +102,7 @@ function JoinPanel({ campaign, onJoined }) {
     e.preventDefault();
     setBusy(true);
     setMsg("");
+    setStagingOtpHint("");
     const { ok, data } = await api("/api/rewards/enroll", {
       method: "POST",
       body: { email, declaredCountry: country, serviceMessagesAccepted: acceptRules, marketingOptIn: marketing },
@@ -105,6 +110,9 @@ function JoinPanel({ campaign, onJoined }) {
     setBusy(false);
     if (!ok) return setMsg(data.error || "Could not start enrollment.");
     setPendingToken(data.enrollmentSessionToken);
+    if (data.stagingVerificationOtp || data._testVerification?.otp) {
+      setStagingOtpHint(data.stagingVerificationOtp || data._testVerification?.otp);
+    }
     setStep("verify");
     setMsg(data.message);
   };
@@ -124,30 +132,33 @@ function JoinPanel({ campaign, onJoined }) {
 
   const resend = async () => {
     const { data } = await api("/api/rewards/resend", { method: "POST", body: { enrollmentSessionToken: pendingToken } });
+    if (data.stagingVerificationOtp || data._testVerification?.otp) {
+      setStagingOtpHint(data.stagingVerificationOtp || data._testVerification?.otp);
+    }
     setMsg(data.message || data.error);
   };
 
   return (
     <div className={card}>
-      <h2 className="text-[18px] font-semibold mb-1">Join rewards</h2>
+      <h2 className="text-[18px] font-semibold mb-1">Join Fylshare Rewards (Verify Your Email)</h2>
       <p className="text-[13px] text-[#6E6E73] mb-4">
-        Optional. We only need an email to verify you and deliver a reward if you are selected.
+        Optional. Enter and verify your email address to link your uploads, track qualifying download activity points, and receive rewards when selected during an active campaign.
       </p>
       {step === "email" ? (
         <form onSubmit={enroll} className="space-y-3">
           <div>
             <label className={label} htmlFor="rw-email">Email address</label>
-            <input id="rw-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={input} />
+            <input id="rw-email" type="email" required placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className={input} />
           </div>
           <div>
             <label className={label} htmlFor="rw-country">Country of residence (self-declared)</label>
             <select id="rw-country" value={country} onChange={(e) => setCountry(e.target.value)} className={input}>
-              {(campaign.eligibleCountries || []).map((c) => (<option key={c} value={c}>{c}</option>))}
+              {defaultCountries.map((c) => (<option key={c} value={c}>{c}</option>))}
             </select>
           </div>
           <label className="flex items-start gap-2 text-[13px]">
             <input type="checkbox" checked={acceptRules} onChange={(e) => setAcceptRules(e.target.checked)} className="mt-1" />
-            <span>I accept the official rules above and agree to receive necessary campaign service emails (verification, status, reward delivery).</span>
+            <span>I accept the official rules and agree to receive necessary campaign service emails (verification, status, reward delivery).</span>
           </label>
           <label className="flex items-start gap-2 text-[13px] text-[#6E6E73]">
             <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} className="mt-1" />
@@ -157,6 +168,12 @@ function JoinPanel({ campaign, onJoined }) {
         </form>
       ) : (
         <form onSubmit={verify} className="space-y-3">
+          {stagingOtpHint && (
+            <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-[13px] text-amber-900">
+              Verification code (staging / instant preview):{" "}
+              <strong className="font-mono tracking-wider text-[15px]">{stagingOtpHint}</strong>
+            </div>
+          )}
           <label className={label} htmlFor="rw-otp">6-digit code (expires in 30 minutes, single use)</label>
           <input id="rw-otp" inputMode="numeric" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} className={`${input} font-mono tracking-[0.3em]`} />
           <div className="flex gap-2">
@@ -347,7 +364,6 @@ function Dashboard({ onSignOut }) {
 }
 
 export default function Rewards() {
-  const [searchParams] = useSearchParams();
   const [campaign, setCampaign] = useState(undefined);
   const [token, setToken] = useState(getParticipantToken());
 
@@ -378,11 +394,9 @@ export default function Rewards() {
           <Dashboard onSignOut={signOut} />
         ) : (
           <>
-            <RulesPanel campaign={campaign} />
-            {campaign && (searchParams.get("join") === "1" ? <JoinPanel campaign={campaign} onJoined={refreshToken} /> : (
-              <div className="flex justify-center"><Link to="/rewards?join=1" className={primaryBtn}>Join rewards</Link></div>
-            ))}
+            <JoinPanel campaign={campaign} onJoined={refreshToken} />
             <SignInPanel onSignedIn={refreshToken} />
+            <RulesPanel campaign={campaign} />
           </>
         )}
         <p className="text-center text-[12px]"><Link to="/" className="text-[#0066CC]">Back to sharing files</Link></p>
