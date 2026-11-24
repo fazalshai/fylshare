@@ -19,7 +19,7 @@ import Toast from "./Toast";
 import config from "./config";
 import { trackEvent, getSizeBucket } from "./analytics";
 import RewardsInvite from "./RewardsInvite";
-import { activityHeaders, newEventId } from "./rewardsClient";
+import { activityHeaders, newEventId, setParticipantToken } from "./rewardsClient";
 
 // Record failed/cancelled upload attempts (idempotent by eventId). Never blocks the user.
 function reportUploadTelemetry(eventId, status) {
@@ -70,6 +70,9 @@ export default function Home() {
   const uploadEventIdRef = useRef(null);
 
   const [label, setLabel] = useState("");
+  const [rewardEmail, setRewardEmail] = useState(
+    () => localStorage.getItem("fylshare_rewards_email") || ""
+  );
   const [files, setFiles] = useState([]);
   const [quickCode, setQuickCode] = useState("");
   const [toast, setToast] = useState(null);
@@ -260,6 +263,14 @@ export default function Home() {
     const formData = new FormData();
     formData.append("name", label.trim().slice(0, 80));
     formData.append("size", String(totalSize));
+    if (rewardEmail.trim()) {
+      formData.append("rewardEmail", rewardEmail.trim().toLowerCase());
+      try {
+        localStorage.setItem("fylshare_rewards_email", rewardEmail.trim().toLowerCase());
+      } catch {
+        // ignore
+      }
+    }
     if (currentGeo.city) formData.append("city", currentGeo.city);
     if (currentGeo.region) formData.append("region", currentGeo.region);
     if (currentGeo.countryCode) formData.append("countryCode", currentGeo.countryCode);
@@ -323,6 +334,10 @@ export default function Home() {
           )}`
         : `${window.location.origin}/search?code=${encodeURIComponent(responseData.code)}`;
 
+      if (responseData.rewardEnrollment?.participantToken) {
+        setParticipantToken(responseData.rewardEnrollment.participantToken);
+      }
+
       const ticket = {
         transferId: responseData.transferId,
         code: responseData.code,
@@ -334,6 +349,8 @@ export default function Home() {
         createdAt: responseData.createdAt || new Date().toISOString(),
         expiresAt: responseData.expiresAt || null,
         scanStatus: responseData.scanStatus || "passed",
+        rewardEnrollment: responseData.rewardEnrollment || null,
+        uploadPointsAwarded: responseData.uploadPointsAwarded || 0,
       };
 
       setActiveTransfer(ticket);
@@ -731,11 +748,51 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* Optional Fylshare Rewards: Email ID & Rewards Type right inside Send Files */}
-                <RewardsInvite
-                  transfer={recentTransfers[0] || null}
-                  showInlineEnrollment={true}
-                />
+                {/* Integrated Single-Step Optional Email ID for Fylshare Rewards */}
+                <div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                    <label
+                      htmlFor="reward-email-input"
+                      className="block text-[13px] font-medium text-[#1D1D1F]"
+                    >
+                      Email ID for Fylshare Rewards{" "}
+                      <span className="text-[#6E6E73] font-normal">(optional)</span>
+                    </label>
+                    <Link
+                      to="/rewards"
+                      className="text-[11px] font-medium text-[#0066CC] hover:underline"
+                    >
+                      Amazon Gift Card Rewards · 1 pt/transfer, 2 pts/download →
+                    </Link>
+                  </div>
+                  <input
+                    id="reward-email-input"
+                    type="email"
+                    maxLength={160}
+                    placeholder="you@example.com — leave blank to share without joining rewards"
+                    value={rewardEmail}
+                    onChange={(e) => {
+                      setRewardEmail(e.target.value);
+                      if (!e.target.value.trim()) {
+                        try {
+                          localStorage.removeItem("fylshare_rewards_email");
+                        } catch {
+                          // ignore
+                        }
+                      }
+                    }}
+                    disabled={
+                      uploadState === "uploading" || uploadState === "processing"
+                    }
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#D2D2D7] text-[14px] text-[#1D1D1F] placeholder-[#6E6E73]/70 focus:border-[#0066CC]"
+                  />
+                  <p className="text-[11px] text-[#6E6E73] mt-1">
+                    Submits together with your upload when you click{" "}
+                    <strong>Upload &amp; Generate Code</strong>. Earn activity points toward Amazon
+                    Gift Card rewards (ranked by qualifying upload &amp; recipient download
+                    activity, never by signup order).
+                  </p>
+                </div>
 
                 {/* Validation / Error Banner */}
                 {uploadErrorMsg && (

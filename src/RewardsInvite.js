@@ -31,14 +31,20 @@ export default function RewardsInvite({ transfer, showInlineEnrollment = false }
   const [loaded, setLoaded] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(Boolean(showInlineEnrollment));
-  const [step, setStep] = useState("email"); // "email" | "verify"
-  const [email, setEmail] = useState("");
+  const [step, setStep] = useState(() =>
+    transfer?.rewardEnrollment && !transfer.rewardEnrollment.emailVerified ? "verify" : "email"
+  ); // "email" | "verify"
+  const [email, setEmail] = useState(() => transfer?.rewardEnrollment?.email || "");
   const [country, setCountry] = useState("AE");
-  const [acceptService, setAcceptService] = useState(false);
+  const [acceptService, setAcceptService] = useState(true);
   const [marketingOptIn, setMarketingOptIn] = useState(false); // Strictly unchecked by default
   const [otp, setOtp] = useState("");
-  const [pendingToken, setPendingToken] = useState("");
-  const [stagingOtpHint, setStagingOtpHint] = useState("");
+  const [pendingToken, setPendingToken] = useState(
+    () => transfer?.rewardEnrollment?.enrollmentSessionToken || ""
+  );
+  const [stagingOtpHint, setStagingOtpHint] = useState(
+    () => transfer?.rewardEnrollment?.stagingVerificationOtp || ""
+  );
   const [statusMsg, setStatusMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [joinedToken, setJoinedToken] = useState(() => getParticipantToken());
