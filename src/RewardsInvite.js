@@ -30,7 +30,7 @@ export default function RewardsInvite({ transfer, showInlineEnrollment = false }
   const [campaign, setCampaign] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(Boolean(showInlineEnrollment));
   const [step, setStep] = useState("email"); // "email" | "verify"
   const [email, setEmail] = useState("");
   const [country, setCountry] = useState("AE");
@@ -79,10 +79,30 @@ export default function RewardsInvite({ transfer, showInlineEnrollment = false }
 
   const inviteKey = campaign?.campaignId || "cmp_fylshare_activity";
 
-  if (hidden) return null;
   if (!campaign && !showInlineEnrollment) return null;
   if (!loaded && !showInlineEnrollment) return null;
-  if (isInviteDismissed(inviteKey) && !joined && !showEmailForm) return null;
+
+  if (hidden || (isInviteDismissed(inviteKey) && !joined && !showInlineEnrollment)) {
+    if (!showInlineEnrollment) return null;
+    return (
+      <div className="rounded-xl border border-[#D2D2D7]/80 bg-[#F5F5F7] px-3.5 py-2.5 text-[12px] text-[#6E6E73] flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5">
+          <Gift size={14} className="text-[#0066CC]" />
+          <span>Optional: Fylshare Rewards (Amazon Gift Card activity points)</span>
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            setHidden(false);
+            setShowEmailForm(true);
+          }}
+          className="text-[#0066CC] font-semibold hover:underline"
+        >
+          Enter Email ID to join
+        </button>
+      </div>
+    );
+  }
 
   const handleDismiss = () => {
     dismissInvite(inviteKey);
@@ -252,16 +272,22 @@ export default function RewardsInvite({ transfer, showInlineEnrollment = false }
         </>
       ) : (
         <>
-          <p className="text-[13px] text-[#1D1D1F] leading-relaxed mb-2.5">
-            Verify your email address to link your uploads and earn activity points ({rules.pointsPerTransfer}{" "}
-            pt per qualifying transfer, up to {rules.maxTransfersPerDay}/day ·{" "}
-            {rules.pointsPerDelivery} pts per qualifying recipient download, up to{" "}
-            {rules.maxDeliveriesPerTransfer} per transfer).
-          </p>
-          <p className="text-[11.5px] text-[#6E6E73] mb-3.5">
-            Regular file sharing works without an email. No funded prize draw is currently active;
-            verified participants can track their upload/download points and join upcoming
-            campaigns. Winners are ranked by qualifying activity, never by signup order.
+          <div className="mb-2.5 p-2.5 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7]/70 text-[12px] text-[#1D1D1F] space-y-1">
+            <p>
+              <strong>Reward Type:</strong> Amazon Gift Card (Activity-Based Rewards — ranked by
+              verified upload &amp; download points, never by signup order)
+            </p>
+            <p className="text-[#6E6E73]">
+              <strong>How Points Work:</strong> {rules.pointsPerTransfer} pt per qualifying
+              transfer (max {rules.maxTransfersPerDay}/day) · {rules.pointsPerDelivery} pts per
+              qualifying distinct recipient download (max {rules.maxDeliveriesPerTransfer} per
+              transfer).
+            </p>
+          </div>
+          <p className="text-[11.5px] text-[#6E6E73] mb-3">
+            Regular file sharing works without an email. Enter your Email ID below if you want to
+            join Fylshare Rewards, verify ownership, and track your qualifying upload/download
+            points.
           </p>
         </>
       )}

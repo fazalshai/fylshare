@@ -731,6 +731,12 @@ export default function Home() {
                   </p>
                 </div>
 
+                {/* Optional Fylshare Rewards: Email ID & Rewards Type right inside Send Files */}
+                <RewardsInvite
+                  transfer={recentTransfers[0] || null}
+                  showInlineEnrollment={true}
+                />
+
                 {/* Validation / Error Banner */}
                 {uploadErrorMsg && (
                   <div
@@ -884,14 +890,6 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-
-            {/* Optional Fylshare Rewards Card (visible on homepage so users can join with their email or link recent uploads) */}
-            {!activeTransfer && (
-              <RewardsInvite
-                transfer={recentTransfers[0] || null}
-                showInlineEnrollment={true}
-              />
-            )}
 
             {/* Recent Transfers on This Device */}
             {recentTransfers.length > 0 && (

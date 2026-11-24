@@ -140,10 +140,24 @@ function JoinPanel({ campaign, onJoined }) {
 
   return (
     <div className={card}>
-      <h2 className="text-[18px] font-semibold mb-1">Join Fylshare Rewards (Verify Your Email)</h2>
-      <p className="text-[13px] text-[#6E6E73] mb-4">
-        Optional. Enter and verify your email address to link your uploads, track qualifying download activity points, and receive rewards when selected during an active campaign.
+      <h2 className="text-[18px] font-semibold mb-1">Join Fylshare Rewards (Verify Your Email ID)</h2>
+      <p className="text-[13px] text-[#6E6E73] mb-3">
+        Optional. Enter and verify your Email ID to link your uploads, track qualifying download activity points, and receive rewards when selected during an active campaign.
       </p>
+      <div className="mb-4 p-3.5 rounded-xl bg-[#F5F5F7] border border-[#D2D2D7]/80 text-[12.5px] text-[#1D1D1F] space-y-1">
+        <p>
+          <strong>Reward Type:</strong>{" "}
+          {campaign
+            ? `${campaign.prizeCount} × ${campaign.currency} ${campaign.rewardValue} ${campaign.marketplaceLabel} Gift Card`
+            : "Amazon Gift Card (Activity-Based Rewards — ranked by verified upload & download points, never by signup order)"}
+        </p>
+        <p className="text-[#6E6E73]">
+          <strong>Points System:</strong> {campaign?.scoringRules?.pointsPerTransfer ?? 1} point per
+          qualifying file transfer (up to {campaign?.scoringRules?.maxTransfersPerDay ?? 5}/day) ·{" "}
+          {campaign?.scoringRules?.pointsPerDelivery ?? 2} points per qualifying distinct recipient
+          download (up to {campaign?.scoringRules?.maxDeliveriesPerTransfer ?? 3} per transfer).
+        </p>
+      </div>
       {step === "email" ? (
         <form onSubmit={enroll} className="space-y-3">
           <div>
