@@ -1092,8 +1092,16 @@ export default function Admin() {
                               <td className="py-3 px-4 whitespace-nowrap font-mono text-[12px] text-[#1D1D1F]">
                                 {formatInTimezone(item.createdAt, timezone)}
                               </td>
-                              <td className="py-3 px-4 whitespace-nowrap font-mono text-[12px] font-semibold text-[#0066CC]">
-                                {item.code || "—"}
+                              <td className="py-3 px-4 whitespace-nowrap font-mono text-[12px] font-semibold">
+                                {item.code ? (
+                                  <span className="text-[#0066CC]">{item.code}</span>
+                                ) : item.revokedCode ? (
+                                  <span className="text-[#6E6E73]" title="Original code before sender revoked">
+                                    {item.revokedCode} <span className="font-sans text-[10px] font-normal">(revoked)</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-[#6E6E73]">—</span>
+                                )}
                               </td>
                               <td className="py-3 px-4 max-w-[180px] truncate text-[#1D1D1F] font-medium">
                                 {item.label}
@@ -1252,6 +1260,37 @@ export default function Admin() {
                           {selectedTransfer.downloadServedCount} served
                         </dd>
                       </div>
+                      <div>
+                        <dt className="text-[#6E6E73]">Uploader IP (Audit)</dt>
+                        <dd className="font-mono text-[11px] text-[#1D1D1F] mt-0.5">
+                          {selectedTransfer.uploaderIp || "Pre-audit record"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-[#6E6E73]">Terms &amp; Consent</dt>
+                        <dd className="text-[11px] text-[#1D1D1F] mt-0.5">
+                          {selectedTransfer.termsAcceptedAt
+                            ? `Accepted ${formatInTimezone(selectedTransfer.termsAcceptedAt, timezone)}`
+                            : "Implicit / Pre-update"}
+                        </dd>
+                      </div>
+                      {selectedTransfer.revokedAt && (
+                        <>
+                          <div>
+                            <dt className="text-[#6E6E73]">Original Code (Revoked)</dt>
+                            <dd className="font-mono text-[#1D1D1F] mt-0.5">
+                              {selectedTransfer.revokedCode || "—"}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt className="text-[#6E6E73]">Revoked At / IP</dt>
+                            <dd className="font-mono text-[11px] text-[#1D1D1F] mt-0.5">
+                              {formatInTimezone(selectedTransfer.revokedAt, timezone)}
+                              {selectedTransfer.revokerIp ? ` (${selectedTransfer.revokerIp})` : ""}
+                            </dd>
+                          </div>
+                        </>
+                      )}
                     </dl>
 
                     {selectedTransfer.lastCleanupError && (

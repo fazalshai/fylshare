@@ -26,10 +26,17 @@ export default function TermsOfService() {
 
         <section className="space-y-3 text-[15px] leading-relaxed">
           <h2 className="text-[20px] font-semibold">
-            2. Your Rights &amp; Responsibility for Uploaded Content
+            2. Your Rights, Legal Responsibility &amp; Indemnification
           </h2>
           <p className="text-[#6E6E73]">
             <strong>Only upload content you own or have the legal right to share.</strong> You retain whatever ownership rights you hold in the files you upload, and you grant Fylshare a limited technical license solely to store, validate, transmit, and delete those files as part of operating the service.
+          </p>
+          <p className="text-[#6E6E73]">
+            <strong>Sole Uploader Responsibility:</strong> Fylshare acts strictly as a technical passive conduit and hosting provider. By uploading files, you represent and warrant that your uploads comply with the UAE Federal Decree-Law on Combatting Rumors and Cybercrimes, international copyright/DMCA law, and the laws of your jurisdiction.{" "}
+            <strong className="text-[#1D1D1F]">
+              You bear full civil and criminal liability for any prohibited, infringing, or unlawful material you upload or distribute
+            </strong>
+            , and you agree to indemnify and hold harmless Fylshare and its operators from any third-party claims, legal costs, damages, or regulatory proceedings resulting from your uploads.
           </p>
         </section>
 
@@ -61,10 +68,10 @@ export default function TermsOfService() {
 
         <section className="space-y-3 text-[15px] leading-relaxed">
           <h2 className="text-[20px] font-semibold">
-            4. File Storage, Revocation &amp; Moderation
+            4. File Storage, Sender Revocation &amp; Compliance Audit Logs
           </h2>
           <p className="text-[#6E6E73]">
-            Uploaded files remain accessible via their 6-digit code or share link until deleted by the sender or removed by an administrator. We may quarantine, disable, or delete any transfer or Workspace Box reported for violating these Terms at any time.
+            Uploaded files remain accessible via their 6-digit code or share link until deleted by the sender (using their browser revocation token) or removed by an administrator. When you revoke or delete a transfer, stored file contents are deleted from cloud storage immediately and recipient downloads stop. However, to prevent misuse, Fylshare retains non-content operational and legal-compliance audit metadata (transfer ID, code history, filenames, byte size, timestamps, network IP, location, and terms acceptance) for abuse investigation, DMCA compliance, and cooperation with valid legal or law-enforcement requests.
           </p>
         </section>
 

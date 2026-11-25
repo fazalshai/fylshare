@@ -263,6 +263,7 @@ export default function Home() {
     const formData = new FormData();
     formData.append("name", label.trim().slice(0, 80));
     formData.append("size", String(totalSize));
+    formData.append("termsAccepted", qualityTermsAccepted ? "true" : "false");
     if (rewardEmail.trim()) {
       formData.append("rewardEmail", rewardEmail.trim().toLowerCase());
       try {
@@ -853,7 +854,11 @@ export default function Home() {
                     className="mt-0.5 w-4 h-4 accent-[#0066CC] rounded cursor-pointer shrink-0"
                   />
                   <span className="text-[11.5px] text-[#6E6E73] leading-relaxed">
-                    I confirm I have the legal right to share these files, agree to the{" "}
+                    I confirm I have the legal right to share these files,{" "}
+                    <strong className="text-[#1D1D1F]">
+                      accept sole legal responsibility
+                    </strong>{" "}
+                    for the uploaded content, agree to the{" "}
                     <Link to="/terms" className="text-[#0066CC] hover:underline">
                       Terms &amp; Acceptable Use Policy
                     </Link>{" "}
@@ -861,7 +866,9 @@ export default function Home() {
                     <Link to="/privacy" className="text-[#0066CC] hover:underline">
                       Privacy Notice
                     </Link>
-                    , and accept that Fylshare records transfer metadata and location details (city, state/region, and country) for service quality and security monitoring.
+                    , and accept that Fylshare records transfer metadata, network IP, location
+                    details (city, state/region, country), and audit logs for security, legal
+                    compliance, and quality monitoring (retained even if you later revoke the file).
                   </span>
                 </label>
 
